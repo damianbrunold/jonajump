@@ -15,13 +15,24 @@ public class JonaJumpPanel extends Component implements Runnable {
 
 	private static final long serialVersionUID = 1L;
 
+	private static final int JUMP_VELOCITY = 25;
+	private static final int ACCEL_Y = 100;
+	
+	public volatile boolean stopped = false;
+	
 	private int x = 0;
 	private int y = 360;
+	private int player_offset_x = -400;
+	private int player_offset_y = 0;
+	private int player_accel_y = 0;
+	private int jump_time = 0;
 	private BufferedImage background;
 	private BufferedImage player_standing_right;
 	private BufferedImage player_standing_left;
 	private BufferedImage player_running_right;
 	private BufferedImage player_running_left;
+	private BufferedImage player_jumping_right;
+	private BufferedImage player_jumping_left;
 	private BufferedImage player;
 	private PlayerState playerState = PlayerState.STANDING_RIGHT;
 
@@ -31,6 +42,8 @@ public class JonaJumpPanel extends Component implements Runnable {
 		player_standing_left = getImage("player_standing_left");
 		player_running_right = getImage("player_running_right");
 		player_running_left = getImage("player_running_left");
+		player_jumping_right = player_running_right; // TODO 
+		player_jumping_left = player_running_left; // TODO 
 		addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyPressed(KeyEvent e) {
@@ -40,15 +53,17 @@ public class JonaJumpPanel extends Component implements Runnable {
 						playerState = PlayerState.JUMPING_RIGHT;
 					} else {
 						playerState = PlayerState.RUNNING_RIGHT;
-						player = player_running_right;
 					}
 				} else if (e.getKeyCode() == KeyEvent.VK_LEFT) {
 					if (isJumping()) {
 						playerState = PlayerState.JUMPING_LEFT;
 					} else {
 						playerState = PlayerState.RUNNING_LEFT;
-						player = player_running_left;
 					}
+				} else if (e.getKeyCode() == KeyEvent.VK_SPACE) {
+					playerState = isRight() ? PlayerState.JUMPING_RIGHT : PlayerState.JUMPING_LEFT;
+					jump_time = 0;
+					player_accel_y = 1;
 				}
 			}
 			@Override
@@ -76,15 +91,30 @@ public class JonaJumpPanel extends Component implements Runnable {
 	}
 	
 	private boolean isJumping() {
-		return playerState == PlayerState.JUMPING_LEFT || playerState == PlayerState.JUMPING_RIGHT; 
+		return playerState == PlayerState.JUMPING_LEFT || 
+				playerState == PlayerState.JUMPING_RIGHT; 
 	}
 	
 	private boolean isRunning() {
-		return playerState == PlayerState.RUNNING_LEFT || playerState == PlayerState.RUNNING_RIGHT; 
+		return playerState == PlayerState.RUNNING_LEFT || 
+				playerState == PlayerState.RUNNING_RIGHT; 
 	}
 	
 	private boolean isStanding() {
-		return playerState == PlayerState.STANDING_LEFT || playerState == PlayerState.STANDING_RIGHT; 
+		return playerState == PlayerState.STANDING_LEFT || 
+				playerState == PlayerState.STANDING_RIGHT; 
+	}
+	
+	private boolean isLeft() {
+		return playerState == PlayerState.STANDING_LEFT || 
+				playerState == PlayerState.RUNNING_LEFT ||
+				playerState == PlayerState.JUMPING_LEFT; 
+	}
+	
+	private boolean isRight() {
+		return playerState == PlayerState.STANDING_RIGHT || 
+				playerState == PlayerState.RUNNING_RIGHT ||
+				playerState == PlayerState.JUMPING_RIGHT; 
 	}
 	
 	private BufferedImage getImage(String name) throws IOException {
@@ -102,14 +132,14 @@ public class JonaJumpPanel extends Component implements Runnable {
 	}
 
 	public void run() {
-		while (true) {
+		while (!stopped) {
 			Graphics g = getGraphics();
 			if (g != null) {
 				updateWorld(g);
 				g.dispose();
 			}
 			try {
-				Thread.sleep(33);
+				Thread.sleep(20);
 			} catch (InterruptedException e) {
 				// ignore
 			}
@@ -124,18 +154,48 @@ public class JonaJumpPanel extends Component implements Runnable {
 	private void updateState() {
 		switch (playerState) {
 		case RUNNING_RIGHT:
-			player = player_running_right;
-			x += 20;
-			if (x > background.getWidth() - 600) {
-				x = background.getWidth() - 600;
+			if (isLeft()) {
+				player = player_standing_right;
+			} else {
+				player = player_running_right;
+				if (player_offset_x < 0) {
+					player_offset_x += 10;
+					if (player_offset_x > 0) {
+						player_offset_x = 0;
+					}
+				} else {
+					x += 10;
+					if (x > background.getWidth() - getWidth()) {
+						x = background.getWidth() - getWidth();
+						player_offset_x += 10;
+						if (player_offset_x > 400 - player.getWidth()) {
+							player_offset_x = 400 - player.getWidth() ;
+						}
+					}
+				}
 			}
 			break;
 			
 		case RUNNING_LEFT:
-			player = player_running_left;
-			x -= 20;
-			if (x < 0) {
-				x = 0;
+			if (isRight()) {
+				player = player_standing_left;
+			} else {
+				player = player_running_left;
+				if (player_offset_x > 0) {
+					player_offset_x -= 10;
+					if (player_offset_x < 0) {
+						player_offset_x = 0;
+					}
+				} else {
+					x -= 10;
+					if (x < 0) {
+						x = 0;
+						player_offset_x -= 10;
+						if (player_offset_x < -400) {
+							player_offset_x = -400;
+						}
+					}
+				}
 			}
 			break;
 			
@@ -146,15 +206,32 @@ public class JonaJumpPanel extends Component implements Runnable {
 		case STANDING_LEFT:
 			player = player_standing_left;
 			break;
+			
+		case JUMPING_RIGHT:
+			player_offset_y = JUMP_VELOCITY * jump_time - player_accel_y * jump_time * jump_time;
+			jump_time++;
+			if (player_offset_y < 0) {
+				player_offset_y = 0;
+				player_accel_y = 0;
+				playerState = PlayerState.STANDING_RIGHT; 
+			}
+			break;
+
+		case JUMPING_LEFT:
+			player_offset_y = JUMP_VELOCITY * jump_time - player_accel_y * jump_time * jump_time;
+			jump_time++;
+			if (player_offset_y < 0) {
+				player_offset_y = 0;
+				player_accel_y = 0;
+				playerState = PlayerState.STANDING_LEFT; 
+			}
+			break;
 		}
 	}
 
 	private void renderWorld(Graphics g) {
-		long start = System.nanoTime();
 		g.drawImage(background, 0, 0, 800, 600, x, 0, x + 800, 600, null);
-		g.drawImage(player, 400, y, null);
-		long elapsed = System.nanoTime() - start;
-		System.out.println("elapsed = " + elapsed);
+		g.drawImage(player, 400 + player_offset_x, y - player_offset_y, null);
 	}
 
 }
