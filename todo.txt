@@ -1,0 +1,5 @@
+todo
+----
+
+- only allow jump if standing on solid ground
+- increase jump height if running

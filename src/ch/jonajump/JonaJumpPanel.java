@@ -15,17 +15,26 @@ public class JonaJumpPanel extends Component implements Runnable {
 
 	private static final long serialVersionUID = 1L;
 
+	private static final int SCREEN_WIDTH = 800;
+	private static final int SCREEN_HEIGHT = 600;
+	
 	private static final int JUMP_VELOCITY = 25;
 	private static final int ACCEL_Y = 100;
 	
 	public volatile boolean stopped = false;
 	
 	private int x = 0;
-	private int y = 360;
-	private int player_offset_x = -400;
+	private int y = 360; // TODO
+	private int player_offset_x = -SCREEN_WIDTH / 2;
 	private int player_offset_y = 0;
 	private int player_accel_y = 0;
 	private int jump_time = 0;
+	private int running_time = 0;
+	
+	private boolean looking_right = true;
+	private boolean running = false;
+	private boolean jumping = false;
+
 	private BufferedImage background;
 	private BufferedImage player_standing_right;
 	private BufferedImage player_standing_left;
@@ -34,34 +43,21 @@ public class JonaJumpPanel extends Component implements Runnable {
 	private BufferedImage player_jumping_right;
 	private BufferedImage player_jumping_left;
 	private BufferedImage player;
-	private PlayerState playerState = PlayerState.STANDING_RIGHT;
 
 	public JonaJumpPanel() throws IOException {
-		background = getImage("background");
-		player_standing_right = getImage("player_standing_right");
-		player_standing_left = getImage("player_standing_left");
-		player_running_right = getImage("player_running_right");
-		player_running_left = getImage("player_running_left");
-		player_jumping_right = player_running_right; // TODO 
-		player_jumping_left = player_running_left; // TODO 
+		loadImages();
 		addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyPressed(KeyEvent e) {
 				super.keyPressed(e);
 				if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
-					if (isJumping()) {
-						playerState = PlayerState.JUMPING_RIGHT;
-					} else {
-						playerState = PlayerState.RUNNING_RIGHT;
-					}
+					looking_right = true;
+					running = true;
 				} else if (e.getKeyCode() == KeyEvent.VK_LEFT) {
-					if (isJumping()) {
-						playerState = PlayerState.JUMPING_LEFT;
-					} else {
-						playerState = PlayerState.RUNNING_LEFT;
-					}
+					looking_right = false;
+					running = true;
 				} else if (e.getKeyCode() == KeyEvent.VK_SPACE) {
-					playerState = isRight() ? PlayerState.JUMPING_RIGHT : PlayerState.JUMPING_LEFT;
+					jumping = true;
 					jump_time = 0;
 					player_accel_y = 1;
 				}
@@ -70,17 +66,9 @@ public class JonaJumpPanel extends Component implements Runnable {
 			public void keyReleased(KeyEvent e) {
 				super.keyReleased(e);
 				if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
-					if (isJumping()) {
-						playerState = PlayerState.JUMPING_RIGHT;
-					} else {
-						playerState = PlayerState.STANDING_RIGHT;
-					}
+					running = false;
 				} else if (e.getKeyCode() == KeyEvent.VK_LEFT) {
-					if (isJumping()) {
-						playerState = PlayerState.JUMPING_LEFT;
-					} else {
-						playerState = PlayerState.STANDING_LEFT;
-					}
+					running = false;
 				}
 			}
 		});
@@ -89,32 +77,35 @@ public class JonaJumpPanel extends Component implements Runnable {
 		Thread thread = new Thread(this);
 		thread.start();
 	}
+
+	private void loadImages() throws IOException {
+		background = getImage("background");
+		player_standing_right = getImage("player_standing_right");
+		player_standing_left = getImage("player_standing_left");
+		player_running_right = getImage("player_running_right");
+		player_running_left = getImage("player_running_left");
+		player_jumping_right = player_running_right; // TODO 
+		player_jumping_left = player_running_left; // TODO 
+	}
 	
 	private boolean isJumping() {
-		return playerState == PlayerState.JUMPING_LEFT || 
-				playerState == PlayerState.JUMPING_RIGHT; 
+		return jumping; 
 	}
 	
 	private boolean isRunning() {
-		return playerState == PlayerState.RUNNING_LEFT || 
-				playerState == PlayerState.RUNNING_RIGHT; 
+		return running; 
 	}
 	
 	private boolean isStanding() {
-		return playerState == PlayerState.STANDING_LEFT || 
-				playerState == PlayerState.STANDING_RIGHT; 
+		return !running && !jumping; 
 	}
 	
 	private boolean isLeft() {
-		return playerState == PlayerState.STANDING_LEFT || 
-				playerState == PlayerState.RUNNING_LEFT ||
-				playerState == PlayerState.JUMPING_LEFT; 
+		return !isRight(); 
 	}
 	
 	private boolean isRight() {
-		return playerState == PlayerState.STANDING_RIGHT || 
-				playerState == PlayerState.RUNNING_RIGHT ||
-				playerState == PlayerState.JUMPING_RIGHT; 
+		return looking_right; 
 	}
 	
 	private BufferedImage getImage(String name) throws IOException {
@@ -122,7 +113,7 @@ public class JonaJumpPanel extends Component implements Runnable {
 	}
 
 	public Dimension getPreferredSize() {
-		return new Dimension(800, 600);
+		return new Dimension(SCREEN_WIDTH, SCREEN_HEIGHT);
 	}
 
 	@Override
@@ -152,12 +143,14 @@ public class JonaJumpPanel extends Component implements Runnable {
 	}
 
 	private void updateState() {
-		switch (playerState) {
-		case RUNNING_RIGHT:
-			if (isLeft()) {
-				player = player_standing_right;
-			} else {
-				player = player_running_right;
+		updatePlayerPositionX();
+		updatePlayerPositionY();
+		setPlayerImage();
+	}
+
+	private void updatePlayerPositionX() {
+		if (running) {
+			if (looking_right) {
 				if (player_offset_x < 0) {
 					player_offset_x += 10;
 					if (player_offset_x > 0) {
@@ -165,22 +158,15 @@ public class JonaJumpPanel extends Component implements Runnable {
 					}
 				} else {
 					x += 10;
-					if (x > background.getWidth() - getWidth()) {
-						x = background.getWidth() - getWidth();
+					if (x > background.getWidth() - SCREEN_WIDTH) {
+						x = background.getWidth() - SCREEN_WIDTH;
 						player_offset_x += 10;
-						if (player_offset_x > 400 - player.getWidth()) {
-							player_offset_x = 400 - player.getWidth() ;
+						if (player_offset_x > SCREEN_WIDTH / 2 - player.getWidth()) {
+							player_offset_x = SCREEN_WIDTH / 2 - player.getWidth() ;
 						}
 					}
 				}
-			}
-			break;
-			
-		case RUNNING_LEFT:
-			if (isRight()) {
-				player = player_standing_left;
 			} else {
-				player = player_running_left;
 				if (player_offset_x > 0) {
 					player_offset_x -= 10;
 					if (player_offset_x < 0) {
@@ -191,41 +177,37 @@ public class JonaJumpPanel extends Component implements Runnable {
 					if (x < 0) {
 						x = 0;
 						player_offset_x -= 10;
-						if (player_offset_x < -400) {
-							player_offset_x = -400;
+						if (player_offset_x < -SCREEN_WIDTH / 2) {
+							player_offset_x = -SCREEN_WIDTH / 2;
 						}
 					}
 				}
 			}
-			break;
-			
-		case STANDING_RIGHT:
-			player = player_standing_right;
-			break;
+		}
+	}
 
-		case STANDING_LEFT:
-			player = player_standing_left;
-			break;
-			
-		case JUMPING_RIGHT:
+	private void updatePlayerPositionY() {
+		if (jumping) {
 			player_offset_y = JUMP_VELOCITY * jump_time - player_accel_y * jump_time * jump_time;
 			jump_time++;
 			if (player_offset_y < 0) {
 				player_offset_y = 0;
 				player_accel_y = 0;
-				playerState = PlayerState.STANDING_RIGHT; 
+				jumping = false; 
 			}
-			break;
+		}
+	}
 
-		case JUMPING_LEFT:
-			player_offset_y = JUMP_VELOCITY * jump_time - player_accel_y * jump_time * jump_time;
-			jump_time++;
-			if (player_offset_y < 0) {
-				player_offset_y = 0;
-				player_accel_y = 0;
-				playerState = PlayerState.STANDING_LEFT; 
-			}
-			break;
+	private void setPlayerImage() {
+		if (running) {
+			if (looking_right) player = player_running_right;
+			else player = player_running_left;
+		} else if (jumping) {
+			if (looking_right) player = player_jumping_right;
+			else player = player_jumping_left;
+		} else {
+			if (looking_right) player = player_standing_right;
+			else player = player_standing_left;
 		}
 	}
 
