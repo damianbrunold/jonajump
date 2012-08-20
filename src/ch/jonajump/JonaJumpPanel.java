@@ -16,23 +16,23 @@ public class JonaJumpPanel extends Component implements Runnable {
 
     private static final long serialVersionUID = 1L;
 
+    public volatile boolean stopped = false;
+
     private static final int SCREEN_WIDTH = 800;
     private static final int SCREEN_HEIGHT = 600;
 
-    private static final int JUMP_VELOCITY = 25;
-    private static final int ACCEL_Y = 100;
-
     private static final int FRAME_INTERVAL = 20;
 
-    public volatile boolean stopped = false;
+    private static final int JUMP_VELOCITY = 25;
+    private static final double SLOW_ACCEL_Y = 1.4;
+    private static final double FAST_ACCEL_Y = 1.0;
 
     private int x = 0;
     private int y = 360; // TODO
-    private int player_offset_x = -SCREEN_WIDTH / 2;
-    private int player_offset_y = 0;
-    private int player_accel_y = 0;
+    private int player_x = 0;
+    private int player_y = 0;
+    private double player_accel_y = 0;
     private int jump_time = 0;
-    private int running_time = 0;
 
     private boolean looking_right = true;
     private boolean running = false;
@@ -64,7 +64,7 @@ public class JonaJumpPanel extends Component implements Runnable {
                 } else if (e.getKeyCode() == KeyEvent.VK_SPACE && !jumping) {
                     jumping = true;
                     jump_time = 0;
-                    player_accel_y = 1;
+                    player_accel_y = isRunning() ? FAST_ACCEL_Y : SLOW_ACCEL_Y;
                 }
             }
 
@@ -157,34 +157,34 @@ public class JonaJumpPanel extends Component implements Runnable {
     private void updatePlayerPositionX() {
         if (running) {
             if (looking_right) {
-                if (player_offset_x < 0) {
-                    player_offset_x += 10;
-                    if (player_offset_x > 0) {
-                        player_offset_x = 0;
+                if (player_x < SCREEN_WIDTH / 2) {
+                    player_x += 10;
+                    if (player_x > SCREEN_WIDTH / 2) {
+                        player_x = SCREEN_WIDTH / 2;
                     }
                 } else {
                     x += 10;
                     if (x > background.getWidth() - SCREEN_WIDTH) {
                         x = background.getWidth() - SCREEN_WIDTH;
-                        player_offset_x += 10;
-                        if (player_offset_x > SCREEN_WIDTH / 2 - player.getWidth()) {
-                            player_offset_x = SCREEN_WIDTH / 2 - player.getWidth();
+                        player_x += 10;
+                        if (player_x > SCREEN_WIDTH - player.getWidth()) {
+                            player_x = SCREEN_WIDTH - player.getWidth();
                         }
                     }
                 }
             } else {
-                if (player_offset_x > 0) {
-                    player_offset_x -= 10;
-                    if (player_offset_x < 0) {
-                        player_offset_x = 0;
+                if (player_x > SCREEN_WIDTH / 2) {
+                    player_x -= 10;
+                    if (player_x < SCREEN_WIDTH / 2) {
+                        player_x = SCREEN_WIDTH / 2;
                     }
                 } else {
                     x -= 10;
                     if (x < 0) {
                         x = 0;
-                        player_offset_x -= 10;
-                        if (player_offset_x < -SCREEN_WIDTH / 2) {
-                            player_offset_x = -SCREEN_WIDTH / 2;
+                        player_x -= 10;
+                        if (player_x < 0) {
+                            player_x = 0;
                         }
                     }
                 }
@@ -194,10 +194,10 @@ public class JonaJumpPanel extends Component implements Runnable {
 
     private void updatePlayerPositionY() {
         if (jumping) {
-            player_offset_y = JUMP_VELOCITY * jump_time - player_accel_y * jump_time * jump_time;
+            player_y = (int) (JUMP_VELOCITY * jump_time - player_accel_y * jump_time * jump_time);
             jump_time++;
-            if (player_offset_y < 0) {
-                player_offset_y = 0;
+            if (player_y < 0) {
+                player_y = 0;
                 player_accel_y = 0;
                 jumping = false;
             }
@@ -229,7 +229,7 @@ public class JonaJumpPanel extends Component implements Runnable {
         }
         Graphics buffer_g = buffer.getGraphics();
         buffer_g.drawImage(background, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, x, 0, x + SCREEN_WIDTH, SCREEN_HEIGHT, null);
-        buffer_g.drawImage(player, SCREEN_WIDTH / 2 + player_offset_x, y - player_offset_y, null);
+        buffer_g.drawImage(player, player_x, y - player_y, null);
         buffer_g.dispose();
         g.drawImage(buffer, 0, 0, null);
     }
