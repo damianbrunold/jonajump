@@ -27,9 +27,11 @@ public class JonaJumpPanel extends Component implements Runnable {
     private static final double RUN_VELOCITY_DECAY = 0.9;
     private static final double ACCEL_X = 1.0;
 
-    private static final int JUMP_VELOCITY = 25;
-    private static final double SLOW_ACCEL_Y = 1.4;
-    private static final double FAST_ACCEL_Y = 1.1;
+    private static final int JUMP_VELOCITY_FAST_MAX = 25;
+    private static final int JUMP_VELOCITY_FAST = 15;
+    private static final int JUMP_VELOCITY_SLOW_MAX = 20;
+    private static final int JUMP_VELOCITY_SLOW = 12;
+    private static final double ACCEL_Y = 1.0;
 
     private int x = 0;
     private int y = 360; // TODO
@@ -38,6 +40,8 @@ public class JonaJumpPanel extends Component implements Runnable {
     private int player_y = 0;
 
     private double player_velocity_x = 0;
+    private double player_velocity_y = 0;
+    private double player_velocity_y_max = 0;
     private double player_accel_x = 0;
     private double player_accel_y = 0;
 
@@ -76,8 +80,11 @@ public class JonaJumpPanel extends Component implements Runnable {
                     player_accel_x = ACCEL_X;
                 } else if (e.getKeyCode() == KeyEvent.VK_SPACE && !jumping) {
                     jumping = true;
-                    jump_time = 0;
-                    player_accel_y = isRunning() ? FAST_ACCEL_Y : SLOW_ACCEL_Y;
+                    if (jump_time == 0) {
+                        player_accel_y = ACCEL_Y;
+                        player_velocity_y = isRunning() ? JUMP_VELOCITY_FAST : JUMP_VELOCITY_SLOW;
+                        player_velocity_y_max = isRunning() ? JUMP_VELOCITY_FAST_MAX : JUMP_VELOCITY_SLOW_MAX;
+                    }
                 }
             }
 
@@ -90,6 +97,8 @@ public class JonaJumpPanel extends Component implements Runnable {
                 } else if (e.getKeyCode() == KeyEvent.VK_LEFT) {
                     running = false;
                     player_accel_x = 0;
+                } else if (e.getKeyCode() == KeyEvent.VK_SPACE) {
+                    jumping = false;
                 }
             }
         });
@@ -215,13 +224,17 @@ public class JonaJumpPanel extends Component implements Runnable {
 
     private void updatePlayerPositionY() {
         if (jumping) {
-            player_y = (int) (JUMP_VELOCITY * jump_time - player_accel_y * jump_time * jump_time);
+            player_velocity_y = jump_time > 2 ? player_velocity_y_max : player_velocity_y;
+        }
+        if (player_velocity_y != 0) {
+            player_y = (int) (player_velocity_y * jump_time - player_accel_y * jump_time * jump_time);
             jump_time++;
-            if (player_y < 0) {
-                player_y = 0;
-                player_accel_y = 0;
-                jumping = false;
-            }
+        }
+        if (player_y < 0) {
+            player_y = 0;
+            player_velocity_y = 0;
+            player_accel_y = 0;
+            jump_time = 0;
         }
     }
 
