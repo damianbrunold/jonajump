@@ -48,6 +48,8 @@ public class JonaJumpPanel extends Component implements Runnable {
     private boolean jumping = false;
 
     private BufferedImage background;
+    private BufferedImage bricks;
+    private BufferedImage foreground;
     private BufferedImage player_standing_right;
     private BufferedImage player_standing_left;
     private BufferedImage player_running_right;
@@ -99,6 +101,8 @@ public class JonaJumpPanel extends Component implements Runnable {
 
     private void loadImages() throws IOException {
         background = getImage("background");
+        bricks = getImage("bricks");
+        foreground = getImage("foreground");
         player_standing_right = getImage("player_standing_right");
         player_standing_left = getImage("player_standing_left");
         player_running_right = getImage("player_running_right");
@@ -246,7 +250,9 @@ public class JonaJumpPanel extends Component implements Runnable {
         }
         Graphics buffer_g = buffer.getGraphics();
         buffer_g.drawImage(background, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, x, 0, x + SCREEN_WIDTH, SCREEN_HEIGHT, null);
+        buffer_g.drawImage(bricks, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, x, 0, x + SCREEN_WIDTH, SCREEN_HEIGHT, null);
         buffer_g.drawImage(player, player_x, y - player_y, null);
+        buffer_g.drawImage(foreground, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, x, 0, x + SCREEN_WIDTH, SCREEN_HEIGHT, null);
         buffer_g.dispose();
         g.drawImage(buffer, 0, 0, null);
     }
