@@ -7,13 +7,13 @@ import java.io.IOException;
 
 import javax.swing.JFrame;
 
-public class JonaJumpFrame extends JFrame {
+public class JonaJump extends JFrame {
 
     private static final long serialVersionUID = 1L;
 
     private JonaJumpPanel panel;
 
-    public JonaJumpFrame() throws IOException {
+    public JonaJump() throws IOException {
         super("JonaJump");
         setLayout(new BorderLayout());
         add(panel = new JonaJumpPanel());
@@ -28,7 +28,7 @@ public class JonaJumpFrame extends JFrame {
     }
 
     public static void main(String[] args) throws IOException {
-        new JonaJumpFrame().setVisible(true);
+        new JonaJump().setVisible(true);
     }
 
 }
