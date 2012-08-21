@@ -1,7 +1,9 @@
 package ch.jonajump;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.event.KeyAdapter;
@@ -24,8 +26,10 @@ public class JonaJumpPanel extends Component implements Runnable {
     private static final int FRAME_INTERVAL = 20;
 
     private static final int RUN_VELOCITY = 10;
-    private static final double RUN_VELOCITY_DECAY = 0.99;
     private static final double RUN_ACCEL = 1.0;
+
+    private static final double GROUND_VELOCITY_DECAY = 0.5;
+    private static final double AIR_VELOCITY_DECAY = 0.92;
 
     private static final int JUMP_ACCEL_STANDING = 15;
     private static final int JUMP_ACCEL_RUNNING = 18;
@@ -58,6 +62,9 @@ public class JonaJumpPanel extends Component implements Runnable {
 
     private Bricks bricks = new Bricks();
 
+    private boolean game_over = false;
+    private boolean level_finished = false;
+
     public JonaJumpPanel() throws IOException {
         loadImages();
         addKeyListener(new KeyAdapter() {
@@ -78,6 +85,11 @@ public class JonaJumpPanel extends Component implements Runnable {
                     if (hit != null && hit.state == Brick.SOLID_STATE) {
                         player_velocity_y = running ? JUMP_ACCEL_RUNNING : JUMP_ACCEL_STANDING;
                     }
+                } else if ((game_over || level_finished) && e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    x = 0;
+                    player_x = 0;
+                    player_y = 0;
+                    game_over = level_finished = false;
                 }
             }
 
@@ -150,14 +162,23 @@ public class JonaJumpPanel extends Component implements Runnable {
     private void updateState() {
         updatePlayerPositionX();
         updatePlayerPositionY();
+        checkLevelFinished();
         setPlayerImage();
     }
 
     private void updatePlayerPositionX() {
         if (player_accel_x != 0) {
             player_velocity_x = Math.min(RUN_VELOCITY, player_velocity_x + player_accel_x);
+        } else if (bricks.hit(x + player_x + (player == null ? 0 : player.getWidth() / 2), player_y + 5) == null) {
+            player_velocity_x *= AIR_VELOCITY_DECAY;
+            if (Math.abs(player_velocity_x) < 1) {
+                player_velocity_x = 0;
+            }
         } else {
-            player_velocity_x = (int) (player_velocity_x * RUN_VELOCITY_DECAY);
+            player_velocity_x *= GROUND_VELOCITY_DECAY;
+            if (Math.abs(player_velocity_x) < 1) {
+                player_velocity_x = 0;
+            }
         }
         if (player_velocity_x == 0) return;
         if (looking_right) {
@@ -203,9 +224,12 @@ public class JonaJumpPanel extends Component implements Runnable {
         }
         Brick hit = bricks.hit(x + player_x + (player == null ? 0 : player.getWidth() / 2), player_y + 5);
         if (hit != null) {
-            player_y = hit.y;
-            player_velocity_y = 0;
-            player_accel_y = 0;
+            if (player_velocity_y < 0) {
+                player_y = hit.y;
+                player_velocity_y = 0;
+                player_accel_y = 0;
+            }
+            if (hit.state == Brick.DEADLY_STATE) game_over = true;
         }
     }
 
@@ -217,6 +241,13 @@ public class JonaJumpPanel extends Component implements Runnable {
         player = player_images[index];
     }
 
+    private void checkLevelFinished() {
+        if (player == null) return;
+        if (x + player_x > background_image.getWidth() - player.getWidth() - 10) {
+            level_finished = true;
+        }
+    }
+
     private void renderWorld(Graphics g) {
         if (buffer == null) {
             buffer = createImage(SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -226,8 +257,21 @@ public class JonaJumpPanel extends Component implements Runnable {
         buffer_g.drawImage(bricks_image, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, x, 0, x + SCREEN_WIDTH, SCREEN_HEIGHT, null);
         buffer_g.drawImage(player, player_x, player_y - player.getHeight(), null);
         buffer_g.drawImage(foreground_image, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, x, 0, x + SCREEN_WIDTH, SCREEN_HEIGHT, null);
+        if (game_over) {
+            drawMessage(buffer_g, "Game Over");
+        } else if (level_finished) {
+            drawMessage(buffer_g, "Level Finished");
+        }
         buffer_g.dispose();
         g.drawImage(buffer, 0, 0, null);
+    }
+
+    private void drawMessage(Graphics buffer_g, String msg) {
+        buffer_g.setColor(Color.WHITE);
+        buffer_g.fillRect(300, 275, 200, 50);
+        buffer_g.setColor(Color.BLACK);
+        FontMetrics fm = buffer_g.getFontMetrics();
+        buffer_g.drawString(msg, 400 - fm.stringWidth(msg) / 2, 300 + fm.getAscent() / 2);
     }
 
 }
