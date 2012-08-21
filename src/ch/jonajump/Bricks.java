@@ -14,12 +14,12 @@ public class Bricks implements Iterable<Brick> {
 
     private List<Brick> bricks = new ArrayList<Brick>();
 
-    public Bricks() {
-        loadBricks();
+    public Bricks(int world, int level) {
+        loadBricks(world, level);
     }
 
-    public void loadBricks() {
-        File file = new File(Bricks.class.getResource("/resources/bricks.txt").getFile().replace("%20", " "));
+    public void loadBricks(int world, int level) {
+        File file = new File(Bricks.class.getResource("/resources/world" + world + "/level" + level + "/bricks.txt").getFile().replace("%20", " "));
         if (!file.exists()) return;
         try {
             BufferedReader reader = new BufferedReader(new FileReader(file));
@@ -47,9 +47,9 @@ public class Bricks implements Iterable<Brick> {
         return new Brick(x, y, width, height, state);
     }
 
-    public void writeBricks() {
+    public void writeBricks(int world, int level) {
         try {
-            PrintWriter out = new PrintWriter(new FileWriter("src/resources/bricks.txt"));
+            PrintWriter out = new PrintWriter(new FileWriter("src/resources/world" + world + "/level" + level + "/bricks.txt"));
             try {
                 for (Brick brick : bricks) {
                     out.println(brick.toString());

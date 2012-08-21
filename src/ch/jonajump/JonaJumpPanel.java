@@ -23,6 +23,10 @@ public class JonaJumpPanel extends Component implements Runnable {
     private static final int SCREEN_WIDTH = 800;
     private static final int SCREEN_HEIGHT = 600;
 
+    private int player = 1;
+    private int world = 1;
+    private int level = 1;
+
     private int background_width;
     private int player_width;
     private int player_height;
@@ -61,11 +65,11 @@ public class JonaJumpPanel extends Component implements Runnable {
     private BufferedImage bricks_image;
     private BufferedImage foreground_image;
     private BufferedImage[] player_images = new BufferedImage[6];
-    private BufferedImage player;
+    private BufferedImage player_image;
 
     private Image buffer;
 
-    private Bricks bricks = new Bricks();
+    private Bricks bricks = new Bricks(world, level);
 
     private boolean game_over = false;
     private boolean level_finished = false;
@@ -73,8 +77,8 @@ public class JonaJumpPanel extends Component implements Runnable {
     public JonaJumpPanel() throws IOException {
         loadImages();
         background_width = background_image.getWidth();
-        player_width = player.getWidth();
-        player_height = player.getHeight();
+        player_width = player_image.getWidth();
+        player_height = player_image.getHeight();
         addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
@@ -130,16 +134,16 @@ public class JonaJumpPanel extends Component implements Runnable {
     }
 
     private void loadImages() throws IOException {
-        background_image = getImage("background");
-        bricks_image = getImage("bricks");
-        foreground_image = getImage("foreground");
-        player_images[0] = getImage("player_standing_left");
-        player_images[1] = getImage("player_standing_right");
-        player_images[2] = getImage("player_jumping_left");
-        player_images[3]= getImage("player_jumping_right");
-        player_images[4] = getImage("player_running_left");
-        player_images[5]= getImage("player_running_right");
-        player = player_images[1];
+        background_image = getImage("world" + world + "/level" + level + "/background");
+        bricks_image = getImage("world" + world + "/level" + level + "/bricks");
+        foreground_image = getImage("world" + world + "/level" + level + "/foreground");
+        player_images[0] = getImage("player" + player + "/standing_left");
+        player_images[1] = getImage("player" + player + "/standing_right");
+        player_images[2] = getImage("player" + player + "/jumping_left");
+        player_images[3]= getImage("player" + player + "/jumping_right");
+        player_images[4] = getImage("player" + player + "/running_left");
+        player_images[5]= getImage("player" + player + "/running_right");
+        player_image = player_images[1];
     }
 
     private BufferedImage getImage(String name) throws IOException {
@@ -179,6 +183,7 @@ public class JonaJumpPanel extends Component implements Runnable {
     private void updateState() {
         updatePlayerPositionX();
         updatePlayerPositionY();
+        updateScreenPosition();
         checkLevelFinished();
         setPlayerImage();
     }
@@ -200,7 +205,6 @@ public class JonaJumpPanel extends Component implements Runnable {
         } else {
             player_x = Math.max((int) (player_x - player_velocity_x), 0);
         }
-        x = Math.min(Math.max(player_x - SCREEN_WIDTH / 2, 0), background_width - SCREEN_WIDTH);
     }
 
     private void updatePlayerPositionY() {
@@ -222,16 +226,19 @@ public class JonaJumpPanel extends Component implements Runnable {
         if (player_y > SCREEN_HEIGHT) game_over = true;
     }
 
+    private void updateScreenPosition() {
+        x = Math.min(Math.max(player_x - SCREEN_WIDTH / 2, 0), background_width - SCREEN_WIDTH);
+    }
+
     private void setPlayerImage() {
         int index = 0;
         if (jumping) index = 2;
         else if (running) index = 4;
         if (looking_right) index++;
-        player = player_images[index];
+        player_image = player_images[index];
     }
 
     private void checkLevelFinished() {
-        if (player == null) return;
         if (player_x > background_width - player_width - 10) {
             level_finished = true;
         }
@@ -244,8 +251,9 @@ public class JonaJumpPanel extends Component implements Runnable {
         Graphics buffer_g = buffer.getGraphics();
         buffer_g.drawImage(background_image, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, x, 0, x + SCREEN_WIDTH, SCREEN_HEIGHT, null);
         buffer_g.drawImage(bricks_image, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, x, 0, x + SCREEN_WIDTH, SCREEN_HEIGHT, null);
-        buffer_g.drawImage(player, player_x - x, player_y - player_height, null);
+        buffer_g.drawImage(player_image, player_x - x, player_y - player_height, null);
         buffer_g.drawImage(foreground_image, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, x, 0, x + SCREEN_WIDTH, SCREEN_HEIGHT, null);
+        drawInfos(buffer_g);
         if (game_over) {
             drawMessage(buffer_g, "Game Over");
         } else if (level_finished) {
@@ -255,12 +263,22 @@ public class JonaJumpPanel extends Component implements Runnable {
         g.drawImage(buffer, 0, 0, null);
     }
 
-    private void drawMessage(Graphics buffer_g, String msg) {
-        buffer_g.setColor(Color.WHITE);
-        buffer_g.fillRect(300, 275, 200, 50);
-        buffer_g.setColor(Color.BLACK);
-        FontMetrics fm = buffer_g.getFontMetrics();
-        buffer_g.drawString(msg, 400 - fm.stringWidth(msg) / 2, 300 + fm.getAscent() / 2);
+    private void drawMessage(Graphics g, String msg) {
+        g.setColor(Color.WHITE);
+        g.fillRect(300, 275, 200, 50);
+        g.setColor(Color.BLACK);
+        FontMetrics fm = g.getFontMetrics();
+        g.drawString(msg, 400 - fm.stringWidth(msg) / 2, 300 + fm.getAscent() / 2);
     }
 
+    private void drawInfos(Graphics g) {
+        drawString(g, 10, 10 + g.getFontMetrics().getHeight(), "World " + world + ", Level " + level);
+    }
+
+    private void drawString(Graphics g, int x, int y, String str) {
+        g.setColor(Color.WHITE);
+        g.drawString(str, x + 1, y + 1);
+        g.setColor(Color.BLACK);
+        g.drawString(str, x, y);
+    }
 }

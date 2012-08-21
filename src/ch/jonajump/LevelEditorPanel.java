@@ -23,6 +23,8 @@ public class LevelEditorPanel extends Component {
     private static final int SCREEN_WIDTH = 800;
     private static final int SCREEN_HEIGHT = 600;
 
+    private int world = 1;
+    private int level = 1;
 
     private int x = 0;
 
@@ -39,7 +41,7 @@ public class LevelEditorPanel extends Component {
 
     private Image buffer;
 
-    private Bricks bricks = new Bricks();
+    private Bricks bricks = new Bricks(world, level);
 
     public LevelEditorPanel() throws IOException {
         loadImages();
@@ -74,7 +76,7 @@ public class LevelEditorPanel extends Component {
                     }
                     repaint();
                 } else if (e.getKeyCode() == KeyEvent.VK_W) {
-                    bricks.writeBricks();
+                    bricks.writeBricks(world, level);
                 } else if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
                     x += 50;
                     if (x > background_image.getWidth() - SCREEN_WIDTH) {
@@ -120,7 +122,7 @@ public class LevelEditorPanel extends Component {
     }
 
     private BufferedImage getImage(String name) throws IOException {
-        return ImageIO.read(new File(LevelEditorPanel.class.getResource("/resources/" + name + ".png").getFile().replace("%20", " ")));
+        return ImageIO.read(new File(LevelEditorPanel.class.getResource("/resources/world" + world + "/level" + level + "/" + name + ".png").getFile().replace("%20", " ")));
     }
 
     public Dimension getPreferredSize() {
@@ -140,7 +142,7 @@ public class LevelEditorPanel extends Component {
         Graphics buffer_g = buffer.getGraphics();
         buffer_g.setColor(Color.WHITE);
         buffer_g.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-        String msg = "";
+        String msg = "world " + world + "level " + level + ": ";
         if (withBackground) {
             buffer_g.drawImage(background_image, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, x, 0, x + SCREEN_WIDTH, SCREEN_HEIGHT, null);
             msg += "background ";
