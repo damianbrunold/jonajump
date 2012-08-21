@@ -1,15 +1,9 @@
 todo
 ----
 
-- store player velocity and update it using acceleration
-  this removes the need for the jump_time variable and
-  makes the player more self-contained
-- add max velocity (terminal falling velocity)
 - create a sprite class with basic move, display and hit-detection capability
 - create player sprite class with jumping, falling etc
-- load state elements
 - add hit-detection
-- only allow jump if standing on solid ground
 - instead of only solid state elements, split it into three variants:
   - solid
   - step (one can jump up through it, but stand on it)
