@@ -83,7 +83,6 @@ public class Bricks implements Iterable<Brick> {
         return bricks.remove(bricks.size() - 1);
     }
 
-    @Override
     public Iterator<Brick> iterator() {
         return bricks.iterator();
     }
