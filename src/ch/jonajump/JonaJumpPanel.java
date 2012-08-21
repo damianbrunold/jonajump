@@ -25,13 +25,14 @@ public class JonaJumpPanel extends Component implements Runnable {
 
     private static final int RUN_VELOCITY = 10;
     private static final double RUN_VELOCITY_DECAY = 0.9;
-    private static final double ACCEL_X = 1.0;
+    private static final double RUN_ACCEL = 1.0;
 
-    private static final int JUMP_VELOCITY_FAST_MAX = 25;
-    private static final int JUMP_VELOCITY_FAST = 15;
-    private static final int JUMP_VELOCITY_SLOW_MAX = 20;
-    private static final int JUMP_VELOCITY_SLOW = 12;
-    private static final double ACCEL_Y = 1.0;
+    private static final int JUMP_ACCEL_STANDING = 15;
+    private static final int JUMP_ACCEL_RUNNING = 18;
+    private static final int JUMP_VELOCITY = 18;
+    private static final int FALL_VELOCITY = -20;
+
+    private static final double GRAVITY = -1.0;
 
     private int x = 0;
     private int y = 360; // TODO
@@ -41,11 +42,8 @@ public class JonaJumpPanel extends Component implements Runnable {
 
     private double player_velocity_x = 0;
     private double player_velocity_y = 0;
-    private double player_velocity_y_max = 0;
     private double player_accel_x = 0;
     private double player_accel_y = 0;
-
-    private int jump_time = 0;
 
     private boolean looking_right = true;
     private boolean running = false;
@@ -68,17 +66,15 @@ public class JonaJumpPanel extends Component implements Runnable {
                 if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
                     looking_right = true;
                     running = true;
-                    player_accel_x = ACCEL_X;
+                    player_accel_x = RUN_ACCEL;
                 } else if (e.getKeyCode() == KeyEvent.VK_LEFT) {
                     looking_right = false;
                     running = true;
-                    player_accel_x = ACCEL_X;
+                    player_accel_x = RUN_ACCEL;
                 } else if (e.getKeyCode() == KeyEvent.VK_SPACE && !jumping) {
                     jumping = true;
-                    if (jump_time == 0) {
-                        player_accel_y = ACCEL_Y;
-                        player_velocity_y = isRunning() ? JUMP_VELOCITY_FAST : JUMP_VELOCITY_SLOW;
-                        player_velocity_y_max = isRunning() ? JUMP_VELOCITY_FAST_MAX : JUMP_VELOCITY_SLOW_MAX;
+                    if (player_velocity_y == 0) { // TODO check for solid ground instead
+                        player_velocity_y = running ? JUMP_ACCEL_RUNNING : JUMP_ACCEL_STANDING;
                     }
                 }
             }
@@ -113,26 +109,6 @@ public class JonaJumpPanel extends Component implements Runnable {
         player_images[3]= getImage("player_jumping_right");
         player_images[4] = getImage("player_running_left");
         player_images[5]= getImage("player_running_right");
-    }
-
-    private boolean isJumping() {
-        return jumping;
-    }
-
-    private boolean isRunning() {
-        return running;
-    }
-
-    private boolean isStanding() {
-        return !running && !jumping;
-    }
-
-    private boolean isLeft() {
-        return !isRight();
-    }
-
-    private boolean isRight() {
-        return looking_right;
     }
 
     private BufferedImage getImage(String name) throws IOException {
@@ -218,18 +194,15 @@ public class JonaJumpPanel extends Component implements Runnable {
     }
 
     private void updatePlayerPositionY() {
-        if (jumping) {
-            player_velocity_y = jump_time > 2 ? player_velocity_y_max : player_velocity_y;
-        }
+        player_velocity_y += player_accel_y + GRAVITY;
+        player_velocity_y = Math.min(JUMP_VELOCITY, Math.max(FALL_VELOCITY, player_velocity_y));
         if (player_velocity_y != 0) {
-            player_y = (int) (player_velocity_y * jump_time - player_accel_y * jump_time * jump_time);
-            jump_time++;
+            player_y += player_velocity_y;
         }
         if (player_y < 0) {
             player_y = 0;
             player_velocity_y = 0;
             player_accel_y = 0;
-            jump_time = 0;
         }
     }
 
