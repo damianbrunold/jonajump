@@ -1,6 +1,9 @@
 package ch.jonajump;
 
-public class StateElement {
+public class Brick {
+
+    public static final int SOLID_STATE = 1;
+    public static final int DEADLY_STATE = 2;
 
     public int x;
     public int y;
@@ -8,11 +11,11 @@ public class StateElement {
     public int height;
     public int state;
 
-    public StateElement(int x, int y, int width, int height, int state) {
-        this.x = x;
-        this.y = y;
-        this.width = width;
-        this.height = height;
+    public Brick(int x, int y, int width, int height, int state) {
+        this.x = snap(x);
+        this.y = snap(y);
+        this.width = Math.max(10, snap(width));
+        this.height = Math.max(10, snap(height));
         this.state = state;
     }
 
@@ -36,7 +39,7 @@ public class StateElement {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        StateElement other = (StateElement) obj;
+        Brick other = (Brick) obj;
         if (height != other.height)
             return false;
         if (state != other.state)
@@ -59,5 +62,20 @@ public class StateElement {
         result.append(height).append(",");
         result.append(state);
         return result.toString();
+    }
+
+    public void update(int x, int y) {
+        this.width = Math.max(10, snap(x - this.x));
+        this.height = Math.max(10, snap(y - this.y));
+    }
+
+    private int snap(int i) {
+        return (i + 5) / 10 * 10;
+    }
+
+    public boolean hit(int x, int y) {
+        if (x < this.x || this.x + this.width < x) return false;
+        if (y < this.y || this.y + this.height < y) return false;
+        return true;
     }
 }

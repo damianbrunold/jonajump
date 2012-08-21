@@ -11,14 +11,8 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.awt.image.BufferedImage;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.imageio.ImageIO;
 
@@ -29,8 +23,6 @@ public class LevelEditorPanel extends Component {
     private static final int SCREEN_WIDTH = 800;
     private static final int SCREEN_HEIGHT = 600;
 
-    private static final int SOLID_STATE = 1;
-    private static final int DEADLY_STATE = 2;
 
     private int x = 0;
 
@@ -39,15 +31,15 @@ public class LevelEditorPanel extends Component {
     private boolean withForeground = true;
     private boolean withState = true;
 
-    private int state = SOLID_STATE;
+    private int state = Brick.SOLID_STATE;
 
-    private BufferedImage background;
-    private BufferedImage bricks;
-    private BufferedImage foreground;
+    private BufferedImage background_image;
+    private BufferedImage bricks_image;
+    private BufferedImage foreground_image;
 
     private Image buffer;
 
-    private List<StateElement> elements = new ArrayList<StateElement>();
+    private Bricks bricks = new Bricks();
 
     public LevelEditorPanel() throws IOException {
         loadImages();
@@ -71,22 +63,22 @@ public class LevelEditorPanel extends Component {
                     withState = !withState;
                     repaint();
                 } else if (e.getKeyCode() == KeyEvent.VK_S) {
-                    state = SOLID_STATE;
+                    state = Brick.SOLID_STATE;
                     repaint();
                 } else if (e.getKeyCode() == KeyEvent.VK_D) {
-                    state = DEADLY_STATE;
+                    state = Brick.DEADLY_STATE;
                     repaint();
                 } else if (e.getKeyCode() == KeyEvent.VK_Z) {
-                    if (!elements.isEmpty()) {
-                        elements.remove(elements.size() - 1);
+                    if (!bricks.isEmpty()) {
+                        bricks.pop();
                     }
                     repaint();
                 } else if (e.getKeyCode() == KeyEvent.VK_W) {
-                    writeState();
+                    bricks.writeBricks();
                 } else if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
                     x += 50;
-                    if (x > background.getWidth() - SCREEN_WIDTH) {
-                        x = background.getWidth() - SCREEN_WIDTH;
+                    if (x > background_image.getWidth() - SCREEN_WIDTH) {
+                        x = background_image.getWidth() - SCREEN_WIDTH;
                     }
                     repaint();
                 } else if (e.getKeyCode() == KeyEvent.VK_LEFT) {
@@ -101,40 +93,30 @@ public class LevelEditorPanel extends Component {
         addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                StateElement element = new StateElement(snap(x + e.getX()), snap(e.getY()), 0, 0, state);
-                elements.add(element);
+                bricks.createAt(x + e.getX(), e.getY(), state);
                 repaint();
             }
             @Override
             public void mouseReleased(MouseEvent e) {
-                StateElement element = elements.get(elements.size() - 1);
-                element.width = snap(x + e.getX() - element.x);
-                element.height = snap(e.getY() - element.y);
+                bricks.updateLast(x + e.getX(), e.getY());
                 repaint();
             }
         });
         addMouseMotionListener(new MouseMotionAdapter() {
             @Override
             public void mouseDragged(MouseEvent e) {
-                StateElement element = elements.get(elements.size() - 1);
-                element.width = snap(x + e.getX() - element.x);
-                element.height = snap(e.getY() - element.y);
+                bricks.updateLast(x + e.getX(), e.getY());
                 repaint();
             }
         });
         setFocusable(true);
         requestFocus();
-        loadState();
-    }
-
-    private int snap(int i) {
-        return (i + 5) / 10 * 10;
     }
 
     private void loadImages() throws IOException {
-        background = getImage("background");
-        bricks = getImage("bricks");
-        foreground = getImage("foreground");
+        background_image = getImage("background");
+        bricks_image = getImage("bricks");
+        foreground_image = getImage("foreground");
     }
 
     private BufferedImage getImage(String name) throws IOException {
@@ -160,24 +142,24 @@ public class LevelEditorPanel extends Component {
         buffer_g.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
         String msg = "";
         if (withBackground) {
-            buffer_g.drawImage(background, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, x, 0, x + SCREEN_WIDTH, SCREEN_HEIGHT, null);
+            buffer_g.drawImage(background_image, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, x, 0, x + SCREEN_WIDTH, SCREEN_HEIGHT, null);
             msg += "background ";
         }
         if (withBricks) {
-            buffer_g.drawImage(bricks, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, x, 0, x + SCREEN_WIDTH, SCREEN_HEIGHT, null);
+            buffer_g.drawImage(bricks_image, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, x, 0, x + SCREEN_WIDTH, SCREEN_HEIGHT, null);
             msg += "bricks ";
         }
         if (withForeground) {
-            buffer_g.drawImage(foreground, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, x, 0, x + SCREEN_WIDTH, SCREEN_HEIGHT, null);
+            buffer_g.drawImage(foreground_image, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, x, 0, x + SCREEN_WIDTH, SCREEN_HEIGHT, null);
             msg += "foreground ";
         }
         if (withState) {
             renderState(buffer_g);
             msg += "state ";
         }
-        if (state == SOLID_STATE) {
+        if (state == Brick.SOLID_STATE) {
             msg += " / solid";
-        } else if (state == DEADLY_STATE) {
+        } else if (state == Brick.DEADLY_STATE) {
             msg += " / deadly";
         }
         buffer_g.setColor(Color.BLACK);
@@ -187,57 +169,14 @@ public class LevelEditorPanel extends Component {
     }
 
     private void renderState(Graphics g) {
-        for (StateElement element : elements) {
-            if (element.state == SOLID_STATE) {
+        for (Brick element : bricks) {
+            if (element.state == Brick.SOLID_STATE) {
                 g.setColor(Color.CYAN);
-            } else if (element.state == DEADLY_STATE) {
+            } else if (element.state == Brick.DEADLY_STATE) {
                 g.setColor(Color.RED);
             }
             g.fillRect(element.x - x, element.y, element.width, element.height);
         }
     }
 
-    private void loadState() {
-        File file = new File("src/resources/state.txt");
-        if (!file.exists()) return;
-        try {
-            BufferedReader reader = new BufferedReader(new FileReader(file));
-            try {
-                String line = reader.readLine();
-                while (line != null) {
-                    elements.add(parseElement(line));
-                    line = reader.readLine();
-                }
-            } finally {
-                reader.close();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private StateElement parseElement(String s) {
-        String[] parts = s.split(",");
-        int x = Integer.parseInt(parts[0]);
-        int y = Integer.parseInt(parts[1]);
-        int width = Integer.parseInt(parts[2]);
-        int height = Integer.parseInt(parts[3]);
-        int state = Integer.parseInt(parts[4]);
-        return new StateElement(x, y, width, height, state);
-    }
-
-    private void writeState() {
-        try {
-            PrintWriter out = new PrintWriter(new FileWriter("src/resources/state.txt"));
-            try {
-                for (StateElement element : elements) {
-                    out.println(element.toString());
-                }
-            } finally {
-                out.close();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
 }

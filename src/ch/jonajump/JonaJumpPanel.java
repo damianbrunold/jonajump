@@ -24,7 +24,7 @@ public class JonaJumpPanel extends Component implements Runnable {
     private static final int FRAME_INTERVAL = 20;
 
     private static final int RUN_VELOCITY = 10;
-    private static final double RUN_VELOCITY_DECAY = 0.9;
+    private static final double RUN_VELOCITY_DECAY = 0.99;
     private static final double RUN_ACCEL = 1.0;
 
     private static final int JUMP_ACCEL_STANDING = 15;
@@ -35,7 +35,6 @@ public class JonaJumpPanel extends Component implements Runnable {
     private static final double GRAVITY = -1.0;
 
     private int x = 0;
-    private int y = 360; // TODO
 
     private int player_x = 0;
     private int player_y = 0;
@@ -49,13 +48,15 @@ public class JonaJumpPanel extends Component implements Runnable {
     private boolean running = false;
     private boolean jumping = false;
 
-    private BufferedImage background;
-    private BufferedImage bricks;
-    private BufferedImage foreground;
+    private BufferedImage background_image;
+    private BufferedImage bricks_image;
+    private BufferedImage foreground_image;
     private BufferedImage[] player_images = new BufferedImage[6];
     private BufferedImage player;
 
     private Image buffer;
+
+    private Bricks bricks = new Bricks();
 
     public JonaJumpPanel() throws IOException {
         loadImages();
@@ -73,7 +74,8 @@ public class JonaJumpPanel extends Component implements Runnable {
                     player_accel_x = RUN_ACCEL;
                 } else if (e.getKeyCode() == KeyEvent.VK_SPACE && !jumping) {
                     jumping = true;
-                    if (player_velocity_y == 0) { // TODO check for solid ground instead
+                    Brick hit = bricks.hit(x + player_x + player.getWidth() / 2, player_y + 5);
+                    if (hit != null && hit.state == Brick.SOLID_STATE) {
                         player_velocity_y = running ? JUMP_ACCEL_RUNNING : JUMP_ACCEL_STANDING;
                     }
                 }
@@ -100,9 +102,9 @@ public class JonaJumpPanel extends Component implements Runnable {
     }
 
     private void loadImages() throws IOException {
-        background = getImage("background");
-        bricks = getImage("bricks");
-        foreground = getImage("foreground");
+        background_image = getImage("background");
+        bricks_image = getImage("bricks");
+        foreground_image = getImage("foreground");
         player_images[0] = getImage("player_standing_left");
         player_images[1] = getImage("player_standing_right");
         player_images[2] = getImage("player_jumping_left");
@@ -166,8 +168,8 @@ public class JonaJumpPanel extends Component implements Runnable {
                 }
             } else {
                 x += player_velocity_x;
-                if (x > background.getWidth() - SCREEN_WIDTH) {
-                    x = background.getWidth() - SCREEN_WIDTH;
+                if (x > background_image.getWidth() - SCREEN_WIDTH) {
+                    x = background_image.getWidth() - SCREEN_WIDTH;
                     player_x += player_velocity_x;
                     if (player_x > SCREEN_WIDTH - player.getWidth()) {
                         player_x = SCREEN_WIDTH - player.getWidth();
@@ -197,10 +199,11 @@ public class JonaJumpPanel extends Component implements Runnable {
         player_velocity_y += player_accel_y + GRAVITY;
         player_velocity_y = Math.min(JUMP_VELOCITY, Math.max(FALL_VELOCITY, player_velocity_y));
         if (player_velocity_y != 0) {
-            player_y += player_velocity_y;
+            player_y -= player_velocity_y;
         }
-        if (player_y < 0) {
-            player_y = 0;
+        Brick hit = bricks.hit(x + player_x + (player == null ? 0 : player.getWidth() / 2), player_y + 5);
+        if (hit != null) {
+            player_y = hit.y;
             player_velocity_y = 0;
             player_accel_y = 0;
         }
@@ -219,10 +222,10 @@ public class JonaJumpPanel extends Component implements Runnable {
             buffer = createImage(SCREEN_WIDTH, SCREEN_HEIGHT);
         }
         Graphics buffer_g = buffer.getGraphics();
-        buffer_g.drawImage(background, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, x, 0, x + SCREEN_WIDTH, SCREEN_HEIGHT, null);
-        buffer_g.drawImage(bricks, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, x, 0, x + SCREEN_WIDTH, SCREEN_HEIGHT, null);
-        buffer_g.drawImage(player, player_x, y - player_y, null);
-        buffer_g.drawImage(foreground, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, x, 0, x + SCREEN_WIDTH, SCREEN_HEIGHT, null);
+        buffer_g.drawImage(background_image, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, x, 0, x + SCREEN_WIDTH, SCREEN_HEIGHT, null);
+        buffer_g.drawImage(bricks_image, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, x, 0, x + SCREEN_WIDTH, SCREEN_HEIGHT, null);
+        buffer_g.drawImage(player, player_x, player_y - player.getHeight(), null);
+        buffer_g.drawImage(foreground_image, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, x, 0, x + SCREEN_WIDTH, SCREEN_HEIGHT, null);
         buffer_g.dispose();
         g.drawImage(buffer, 0, 0, null);
     }
