@@ -54,12 +54,7 @@ public class JonaJumpPanel extends Component implements Runnable {
     private BufferedImage background;
     private BufferedImage bricks;
     private BufferedImage foreground;
-    private BufferedImage player_standing_right;
-    private BufferedImage player_standing_left;
-    private BufferedImage player_running_right;
-    private BufferedImage player_running_left;
-    private BufferedImage player_jumping_right;
-    private BufferedImage player_jumping_left;
+    private BufferedImage[] player_images = new BufferedImage[6];
     private BufferedImage player;
 
     private Image buffer;
@@ -112,12 +107,12 @@ public class JonaJumpPanel extends Component implements Runnable {
         background = getImage("background");
         bricks = getImage("bricks");
         foreground = getImage("foreground");
-        player_standing_right = getImage("player_standing_right");
-        player_standing_left = getImage("player_standing_left");
-        player_running_right = getImage("player_running_right");
-        player_running_left = getImage("player_running_left");
-        player_jumping_right = player_running_right; // TODO
-        player_jumping_left = player_running_left; // TODO
+        player_images[0] = getImage("player_standing_left");
+        player_images[1] = getImage("player_standing_right");
+        player_images[2] = getImage("player_jumping_left");
+        player_images[3]= getImage("player_jumping_right");
+        player_images[4] = getImage("player_running_left");
+        player_images[5]= getImage("player_running_right");
     }
 
     private boolean isJumping() {
@@ -239,22 +234,11 @@ public class JonaJumpPanel extends Component implements Runnable {
     }
 
     private void setPlayerImage() {
-        if (running) {
-            if (looking_right)
-                player = player_running_right;
-            else
-                player = player_running_left;
-        } else if (jumping) {
-            if (looking_right)
-                player = player_jumping_right;
-            else
-                player = player_jumping_left;
-        } else {
-            if (looking_right)
-                player = player_standing_right;
-            else
-                player = player_standing_left;
-        }
+        int index = 0;
+        if (jumping) index = 2;
+        else if (running) index = 4;
+        if (looking_right) index++;
+        player = player_images[index];
     }
 
     private void renderWorld(Graphics g) {
