@@ -37,8 +37,9 @@ public class JonaJumpPanel extends Component implements Runnable {
 
     private Items bricks;
     private Player player;
+    private Treasure treasure = new Treasure();
 
-    private boolean game_over = false;
+    private boolean level_failed = false;
     private boolean level_finished = false;
 
     public JonaJumpPanel() throws IOException {
@@ -55,7 +56,7 @@ public class JonaJumpPanel extends Component implements Runnable {
                     player.setDown(true);
                 } else if (e.getKeyCode() == KeyEvent.VK_SPACE && !player.jumping) {
                 	player.jump();
-                } else if ((game_over || level_finished) && e.getKeyCode() == KeyEvent.VK_ENTER) {
+                } else if ((level_failed || level_finished) && e.getKeyCode() == KeyEvent.VK_ENTER) {
                     initLevel();
                 }
             }
@@ -82,15 +83,18 @@ public class JonaJumpPanel extends Component implements Runnable {
 
     private void initLevel() {
         try {
-            if (game_over) level = 1;
+            if (level_failed && treasure.isGameOver()) {
+            	treasure = new Treasure();
+            	level = 1;
+            }
             if (level_finished) level++;
             loadImages();
             Images.load(world, level);
             bricks = new Items(world, level);
             background_width = background_image.getWidth();
-            player = new Player(player_type, bricks, background_width, SCREEN_HEIGHT);
+            player = new Player(player_type, bricks, treasure, background_width, SCREEN_HEIGHT);
             x = 0;
-            game_over = level_finished = false;
+            level_failed = level_finished = false;
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -132,7 +136,7 @@ public class JonaJumpPanel extends Component implements Runnable {
     }
 
     private void updateState() {
-        if (game_over || level_finished) return;
+        if (level_failed || level_finished) return;
         player.move();
         updateScreenPosition();
         checkGameOver();
@@ -144,7 +148,10 @@ public class JonaJumpPanel extends Component implements Runnable {
     }
 
     private void checkGameOver() {
-        if (player.isDead()) game_over = true;
+        if (player.isDead()) {
+        	treasure.levelFailed();
+        	level_failed = true;
+        }
     }
 
     private void checkLevelFinished() {
@@ -163,8 +170,12 @@ public class JonaJumpPanel extends Component implements Runnable {
         player.render(buffer_g, x);
         buffer_g.drawImage(foreground_image, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, x, 0, x + SCREEN_WIDTH, SCREEN_HEIGHT, null);
         drawInfos(buffer_g);
-        if (game_over) {
-            drawMessage(buffer_g, "Game Over");
+        if (level_failed) {
+        	if (treasure.isGameOver()) {
+        		drawMessage(buffer_g, "Level Failed - Game Over");
+        	} else {
+        		drawMessage(buffer_g, "Level Failed");
+        	}
         } else if (level_finished) {
             drawMessage(buffer_g, "Level Finished");
         }
@@ -188,7 +199,7 @@ public class JonaJumpPanel extends Component implements Runnable {
 
     private void drawInfos(Graphics g) {
         drawString(g, 10, 10 + g.getFontMetrics().getHeight(), "World " + world + ", Level " + level);
-        String found = "Drops " + player.drops_found + ", Gold " + player.gold_found + ", Stars " + player.stars_found;
+        String found = "Drops " + treasure.drops + ", Gold " + treasure.gold + ", Stars " + treasure.stars;
         drawString(g, SCREEN_WIDTH - 10 - g.getFontMetrics().stringWidth(found), 10 + g.getFontMetrics().getHeight(), found);
     }
 

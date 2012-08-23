@@ -47,14 +47,12 @@ public class Player {
     private int character;
 
     private Items items;
+    private Treasure treasure;
 
-    public int drops_found = 0;
-    public int gold_found = 0;
-    public int stars_found = 0;
-
-    public Player(int character, Items items, int world_width, int world_height) {
+    public Player(int character, Items items, Treasure treasure, int world_width, int world_height) {
     	this.character = character;
     	this.items = items;
+    	this.treasure = treasure;
     	this.world_width = world_width;
     	this.world_height = world_height;
         try {
@@ -218,13 +216,13 @@ public class Player {
         if (!hit_items.isEmpty()) {
             for (Item item : hit_items) {
                 if (item instanceof Drop) {
-                    drops_found++;
+                    treasure.drops++;
                     items.remove(item);
                 } else if (item instanceof Gold) {
-                    gold_found++;
+                    treasure.gold++;
                     items.remove(item);
                 } else if (item instanceof Star) {
-                    stars_found++;
+                    treasure.stars++;
                     items.remove(item);
                 }
             }
