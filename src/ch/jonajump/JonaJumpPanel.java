@@ -67,16 +67,16 @@ public class JonaJumpPanel extends Component implements Runnable {
     private BufferedImage player_image;
     private Image buffer;
 
-    private Bricks bricks = new Bricks(world, level);
+    private int drops_found = 0;
+    private int gold_found = 0;
+
+    private Bricks bricks;
 
     private boolean game_over = false;
     private boolean level_finished = false;
 
     public JonaJumpPanel() throws IOException {
-        loadImages();
-        background_width = background_image.getWidth();
-        player_width = player_image.getWidth();
-        player_height = player_image.getHeight();
+        initLevel();
         addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
@@ -94,7 +94,7 @@ public class JonaJumpPanel extends Component implements Runnable {
                 } else if (e.getKeyCode() == KeyEvent.VK_SPACE && !jumping) {
                     jumping = true;
                     Brick hit = bricks.hit(player_x + player_width / 2, player_y + 2);
-                    if (hit != null && hit.state == Brick.SOLID_STATE) {
+                    if (hit != null && hit.type == Brick.BRICK) {
                         player_velocity_y = running ? JUMP_ACCEL_RUNNING : JUMP_ACCEL_STANDING;
                         if (down) {
                             player_velocity_y *= -1;
@@ -102,10 +102,7 @@ public class JonaJumpPanel extends Component implements Runnable {
                         }
                     }
                 } else if ((game_over || level_finished) && e.getKeyCode() == KeyEvent.VK_ENTER) {
-                    x = 0;
-                    player_x = 0;
-                    player_y = 0;
-                    game_over = level_finished = false;
+                    initLevel();
                 }
             }
 
@@ -129,6 +126,24 @@ public class JonaJumpPanel extends Component implements Runnable {
         requestFocus();
         Thread thread = new Thread(this);
         thread.start();
+    }
+
+    private void initLevel() {
+        try {
+            loadImages();
+            Images.load(world, level);
+            bricks = new Bricks(world, level);
+            background_width = background_image.getWidth();
+            player_width = player_image.getWidth();
+            player_height = player_image.getHeight();
+            x = 0;
+            player_x = 0;
+            player_y = 0;
+            drops_found = gold_found = 0;
+            game_over = level_finished = false;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void loadImages() throws IOException {
@@ -218,7 +233,13 @@ public class JonaJumpPanel extends Component implements Runnable {
                 player_velocity_y = 0;
                 player_accel_y = 0;
             }
-            if (hit.state == Brick.DEADLY_STATE) game_over = true;
+            if (hit.type == Brick.GOLD) {
+                gold_found++;
+                bricks.remove(hit);
+            } else if (hit.type == Brick.DROP) {
+                drops_found++;
+                bricks.remove(hit);
+            }
         }
         if (player_y > SCREEN_HEIGHT) game_over = true;
     }
@@ -276,6 +297,8 @@ public class JonaJumpPanel extends Component implements Runnable {
 
     private void drawInfos(Graphics g) {
         drawString(g, 10, 10 + g.getFontMetrics().getHeight(), "World " + world + ", Level " + level);
+        String found = "Drops " + drops_found + ", Gold " + gold_found;
+        drawString(g, SCREEN_WIDTH - 10 - g.getFontMetrics().stringWidth(found), 10 + g.getFontMetrics().getHeight(), found);
     }
 
     private void drawString(Graphics g, int x, int y, String str) {

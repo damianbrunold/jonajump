@@ -33,17 +33,19 @@ public class LevelEditorPanel extends Component {
     private boolean withGrid = true;
     private boolean withState = true;
 
-    private int state = Brick.SOLID_STATE;
+    private int state = Brick.BRICK;
 
     private BufferedImage background_image;
     private BufferedImage foreground_image;
 
     private Image buffer;
 
-    private Bricks bricks = new Bricks(world, level);
+    private Bricks bricks;
 
     public LevelEditorPanel() throws IOException {
         loadImages();
+        Images.load(world, level);
+        bricks = new Bricks(world, level);
         addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
@@ -61,10 +63,13 @@ public class LevelEditorPanel extends Component {
                     withGrid = !withGrid;
                     repaint();
                 } else if (e.getKeyCode() == KeyEvent.VK_S) {
-                    state = Brick.SOLID_STATE;
+                    state = Brick.BRICK;
                     repaint();
                 } else if (e.getKeyCode() == KeyEvent.VK_D) {
-                    state = Brick.DEADLY_STATE;
+                    state = Brick.DROP;
+                    repaint();
+                } else if (e.getKeyCode() == KeyEvent.VK_G) {
+                    state = Brick.GOLD;
                     repaint();
                 } else if (e.getKeyCode() == KeyEvent.VK_Z) {
                     if (!bricks.isEmpty()) {
@@ -154,10 +159,12 @@ public class LevelEditorPanel extends Component {
             renderGrid(buffer_g);
             msg += "grid ";
         }
-        if (state == Brick.SOLID_STATE) {
-            msg += " / solid";
-        } else if (state == Brick.DEADLY_STATE) {
-            msg += " / deadly";
+        if (state == Brick.BRICK) {
+            msg += " / brick";
+        } else if (state == Brick.DROP) {
+            msg += " / drop";
+        } else if (state == Brick.GOLD) {
+            msg += " / gold";
         }
         buffer_g.setColor(Color.BLACK);
         buffer_g.drawString(msg, 5, buffer_g.getFontMetrics().getHeight());

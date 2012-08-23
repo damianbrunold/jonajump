@@ -14,7 +14,7 @@ public class Bricks implements Iterable<Brick> {
 
     private List<Brick> bricks = new ArrayList<Brick>();
 
-    public Bricks(int world, int level) {
+    public Bricks(int world, int level) throws IOException {
         loadBricks(world, level);
     }
 
@@ -72,6 +72,10 @@ public class Bricks implements Iterable<Brick> {
 
     public void add(Brick brick) {
         bricks.add(brick);
+    }
+
+    public void remove(Brick brick) {
+        bricks.remove(brick);
     }
 
     public Brick last() {
