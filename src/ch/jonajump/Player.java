@@ -20,7 +20,7 @@ public class Player {
     private static final double AIR_VELOCITY_DECAY = 0.92;
     private static final double GROUND_VELOCITY_DECAY = 0.5;
 
-    private static final int JUMP_ACCEL_STANDING = 11;
+    private static final int JUMP_ACCEL_STANDING = 12;
     private static final int JUMP_ACCEL_RUNNING = 14;
     private static final int JUMP_VELOCITY = JUMP_ACCEL_RUNNING;
     private static final int FALL_VELOCITY = -JUMP_VELOCITY;
