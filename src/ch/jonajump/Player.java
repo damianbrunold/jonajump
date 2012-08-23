@@ -5,6 +5,13 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.List;
 
+import ch.jonajump.items.Brick;
+import ch.jonajump.items.Drop;
+import ch.jonajump.items.Gold;
+import ch.jonajump.items.Item;
+import ch.jonajump.items.Items;
+import ch.jonajump.items.Star;
+
 public class Player {
 
     private static final int RUN_VELOCITY = 10;
@@ -186,7 +193,10 @@ public class Player {
                     new_y = item.y - 1;
                     velocity_y = 0;
                     accel_y = 0;
-                    if ((y - new_y) > 1) velocity_x = 0;
+                    if ((y - new_y) > 1) {
+                    	velocity_x = 0;
+                    	accel_x = 0;
+                    }
                     break;
                 } else if (isBrickAbove(brick)) {
                     new_y = item.y + item.height + height + 1;

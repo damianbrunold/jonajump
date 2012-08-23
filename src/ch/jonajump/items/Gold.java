@@ -1,11 +1,27 @@
-package ch.jonajump;
+package ch.jonajump.items;
 
 import java.awt.Graphics;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+
+import ch.jonajump.ResourceLoader;
 
 public class Gold extends Item {
 
-    public Gold(int x, int y, int width, int height) {
-        super(x, y, Images.gold.image.getWidth(), Images.gold.image.getHeight());
+	private static BufferedImage image;
+	private static int[] offsets;
+
+	public static void init() throws IOException {
+		image = ResourceLoader.getImage("items/gold");
+		offsets = ResourceLoader.getOffsets("items/gold");
+	}
+
+    public Gold(int x, int y) {
+        super(x, y, image.getWidth(), image.getHeight());
+    }
+
+    public static Gold createAt(int x, int y) {
+    	return new Gold(snap(x), snap(y));
     }
 
     @Override
@@ -31,15 +47,15 @@ public class Gold extends Item {
     public void render(Graphics g, int start_x, int end_x) {
         if (x + width < start_x) return;
         if (start_x + end_x < x) return;
-        g.drawImage(Images.gold.image, x - start_x, y, null);
+        g.drawImage(image, x - start_x, y, null);
     }
 
     public int getOffsetX() {
-        return Images.gold.offset_x;
+        return offsets[0];
     }
 
     public int getOffsetY() {
-        return Images.gold.offset_y;
+        return offsets[1];
     }
 
 }

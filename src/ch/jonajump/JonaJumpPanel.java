@@ -11,6 +11,13 @@ import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 
+import ch.jonajump.items.Brick;
+import ch.jonajump.items.Drop;
+import ch.jonajump.items.Gold;
+import ch.jonajump.items.Item;
+import ch.jonajump.items.Items;
+import ch.jonajump.items.Star;
+
 public class JonaJumpPanel extends Component implements Runnable {
 
     private static final long serialVersionUID = 1L;
@@ -43,6 +50,9 @@ public class JonaJumpPanel extends Component implements Runnable {
     private boolean level_finished = false;
 
     public JonaJumpPanel() throws IOException {
+        Drop.init();
+        Gold.init();
+        Star.init();
         initLevel();
         addKeyListener(new KeyAdapter() {
             @Override
@@ -89,7 +99,7 @@ public class JonaJumpPanel extends Component implements Runnable {
             }
             if (level_finished) level++;
             loadImages();
-            Images.load(world, level);
+            Brick.init(world, level);
             bricks = new Items(world, level);
             background_width = background_image.getWidth();
             player = new Player(player_type, bricks, treasure, background_width, SCREEN_HEIGHT);

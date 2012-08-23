@@ -16,6 +16,13 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
+import ch.jonajump.items.Brick;
+import ch.jonajump.items.Drop;
+import ch.jonajump.items.Gold;
+import ch.jonajump.items.Item;
+import ch.jonajump.items.Items;
+import ch.jonajump.items.Star;
+
 public class LevelEditorPanel extends Component {
 
     private static final long serialVersionUID = 1L;
@@ -43,6 +50,9 @@ public class LevelEditorPanel extends Component {
     private Items items;
 
     public LevelEditorPanel() throws IOException {
+        Drop.init();
+        Gold.init();
+        Star.init();
         initLevel();
         addKeyListener(new KeyAdapter() {
             @Override
@@ -135,7 +145,7 @@ public class LevelEditorPanel extends Component {
 
     private void initLevel() throws IOException {
         loadImages();
-        Images.load(world, level);
+        Brick.init(world, level);
         items = new Items(world, level);
         buffer = null;
         x = 0;

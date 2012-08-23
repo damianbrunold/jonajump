@@ -1,4 +1,4 @@
-package ch.jonajump;
+package ch.jonajump.items;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -9,6 +9,8 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+
+import ch.jonajump.ResourceLoader;
 
 public class Items implements Iterable<Item> {
 
@@ -47,11 +49,11 @@ public class Items implements Iterable<Item> {
         if (type.equals("brick")) {
             return new Brick(x, y, width, height);
         } else if (type.equals("drop")) {
-            return new Drop(x, y, width, height);
+            return new Drop(x, y);
         } else if (type.equals("gold")) {
-            return new Gold(x, y, width, height);
+            return new Gold(x, y);
         } else if (type.equals("star")) {
-            return new Star(x, y, width, height);
+            return new Star(x, y);
         }
         throw new RuntimeException("unknown item type " + type);
     }
@@ -74,13 +76,13 @@ public class Items implements Iterable<Item> {
     public void createAt(int x, int y, int type) {
         Item item;
         if (type == 1) {
-            item = new Brick(x, y, 0, 0);
+            item = Brick.createAt(x, y);
         } else if (type == 2) {
-            item = new Drop(x, y, 0, 0);
+            item = Drop.createAt(x, y);
         } else if (type == 3) {
-            item = new Gold(x, y, 0, 0);
+            item = Gold.createAt(x, y);
         } else if (type == 4) {
-            item = new Star(x, y, 0, 0);
+            item = Star.createAt(x, y);
         } else {
             throw new RuntimeException("unknown type " + type);
         }

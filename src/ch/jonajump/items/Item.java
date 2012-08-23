@@ -1,4 +1,4 @@
-package ch.jonajump;
+package ch.jonajump.items;
 
 import java.awt.Graphics;
 
@@ -9,11 +9,11 @@ public abstract class Item {
     public int width;
     public int height;
 
-    public Item(int x, int y, int width, int height) {
-        this.x = snap(x);
-        this.y = snap(y);
-        this.width = Math.max(10, snap(width));
-        this.height = Math.max(10, snap(height));
+    protected Item(int x, int y, int width, int height) {
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
     }
 
     @Override
@@ -52,7 +52,7 @@ public abstract class Item {
         this.height = Math.max(10, snap(y - this.y));
     }
 
-    protected int snap(int i) {
+    protected static int snap(int i) {
         return (i + 5) / 10 * 10;
     }
 

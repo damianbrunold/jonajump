@@ -1,11 +1,27 @@
-package ch.jonajump;
+package ch.jonajump.items;
 
 import java.awt.Graphics;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+
+import ch.jonajump.ResourceLoader;
 
 public class Star extends Item {
 
-    public Star(int x, int y, int width, int height) {
-        super(x, y, Images.star.image.getWidth(), Images.star.image.getHeight());
+	private static BufferedImage image;
+	private static int[] offsets;
+
+	public static void init() throws IOException {
+		image = ResourceLoader.getImage("items/star");
+		offsets = ResourceLoader.getOffsets("items/star");
+	}
+
+    public Star(int x, int y) {
+        super(x, y, image.getWidth(), image.getHeight());
+    }
+
+    public static Star createAt(int x, int y) {
+    	return new Star(snap(x), snap(y));
     }
 
     @Override
@@ -31,15 +47,15 @@ public class Star extends Item {
     public void render(Graphics g, int start_x, int end_x) {
         if (x + width < start_x) return;
         if (start_x + end_x < x) return;
-        g.drawImage(Images.star.image, x - start_x, y, null);
+        g.drawImage(image, x - start_x, y, null);
     }
 
     public int getOffsetX() {
-        return Images.star.offset_x;
+        return offsets[0];
     }
 
     public int getOffsetY() {
-        return Images.star.offset_y;
+        return offsets[1];
     }
 
 }
