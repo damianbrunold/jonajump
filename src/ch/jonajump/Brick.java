@@ -1,5 +1,8 @@
 package ch.jonajump;
 
+import java.awt.Color;
+import java.awt.Graphics;
+
 public class Brick {
 
     public static final int SOLID_STATE = 1;
@@ -78,4 +81,16 @@ public class Brick {
         if (y < this.y || this.y + this.height < y) return false;
         return true;
     }
+
+    public void render(Graphics g, int start_x, int end_x) {
+        if (x + width < start_x) return;
+        if (start_x + end_x < x) return;
+        if (state == Brick.SOLID_STATE) {
+            g.setColor(Color.RED.darker().darker());
+        } else if (state == Brick.DEADLY_STATE) {
+            g.setColor(Color.RED.brighter());
+        }
+        g.fillRect(x - start_x, y, width, height);
+    }
+
 }

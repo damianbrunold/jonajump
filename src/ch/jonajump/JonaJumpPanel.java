@@ -62,11 +62,9 @@ public class JonaJumpPanel extends Component implements Runnable {
     private boolean down = false;
 
     private BufferedImage background_image;
-    private BufferedImage bricks_image;
     private BufferedImage foreground_image;
     private BufferedImage[] player_images = new BufferedImage[6];
     private BufferedImage player_image;
-
     private Image buffer;
 
     private Bricks bricks = new Bricks(world, level);
@@ -135,7 +133,6 @@ public class JonaJumpPanel extends Component implements Runnable {
 
     private void loadImages() throws IOException {
         background_image = getImage("world" + world + "/level" + level + "/background");
-        bricks_image = getImage("world" + world + "/level" + level + "/bricks");
         foreground_image = getImage("world" + world + "/level" + level + "/foreground");
         player_images[0] = getImage("player" + player + "/standing_left");
         player_images[1] = getImage("player" + player + "/standing_right");
@@ -250,7 +247,7 @@ public class JonaJumpPanel extends Component implements Runnable {
         }
         Graphics buffer_g = buffer.getGraphics();
         buffer_g.drawImage(background_image, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, x, 0, x + SCREEN_WIDTH, SCREEN_HEIGHT, null);
-        buffer_g.drawImage(bricks_image, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, x, 0, x + SCREEN_WIDTH, SCREEN_HEIGHT, null);
+        renderBricks(buffer_g);
         buffer_g.drawImage(player_image, player_x - x, player_y - player_height, null);
         buffer_g.drawImage(foreground_image, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, x, 0, x + SCREEN_WIDTH, SCREEN_HEIGHT, null);
         drawInfos(buffer_g);
@@ -261,6 +258,12 @@ public class JonaJumpPanel extends Component implements Runnable {
         }
         buffer_g.dispose();
         g.drawImage(buffer, 0, 0, null);
+    }
+
+    private void renderBricks(Graphics g) {
+        for (Brick brick : bricks) {
+            brick.render(g, x, x + SCREEN_WIDTH);
+        }
     }
 
     private void drawMessage(Graphics g, String msg) {

@@ -29,14 +29,13 @@ public class LevelEditorPanel extends Component {
     private int x = 0;
 
     private boolean withBackground = true;
-    private boolean withBricks = true;
     private boolean withForeground = true;
+    private boolean withGrid = true;
     private boolean withState = true;
 
     private int state = Brick.SOLID_STATE;
 
     private BufferedImage background_image;
-    private BufferedImage bricks_image;
     private BufferedImage foreground_image;
 
     private Image buffer;
@@ -53,16 +52,13 @@ public class LevelEditorPanel extends Component {
                     withBackground = !withBackground;
                     repaint();
                 } else if (e.getKeyChar() == '2') {
-                    withBricks = !withBricks;
-                    repaint();
-                } else if (e.getKeyChar() == '3') {
                     withForeground = !withForeground;
                     repaint();
-                } else if (e.getKeyChar() == '4') {
+                } else if (e.getKeyChar() == '3') {
                     withState = !withState;
                     repaint();
                 } else if (e.getKeyChar() == '4') {
-                    withState = !withState;
+                    withGrid = !withGrid;
                     repaint();
                 } else if (e.getKeyCode() == KeyEvent.VK_S) {
                     state = Brick.SOLID_STATE;
@@ -117,7 +113,6 @@ public class LevelEditorPanel extends Component {
 
     private void loadImages() throws IOException {
         background_image = getImage("background");
-        bricks_image = getImage("bricks");
         foreground_image = getImage("foreground");
     }
 
@@ -147,17 +142,17 @@ public class LevelEditorPanel extends Component {
             buffer_g.drawImage(background_image, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, x, 0, x + SCREEN_WIDTH, SCREEN_HEIGHT, null);
             msg += "background ";
         }
-        if (withBricks) {
-            buffer_g.drawImage(bricks_image, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, x, 0, x + SCREEN_WIDTH, SCREEN_HEIGHT, null);
-            msg += "bricks ";
+        if (withState) {
+            renderState(buffer_g);
+            msg += "state ";
         }
         if (withForeground) {
             buffer_g.drawImage(foreground_image, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, x, 0, x + SCREEN_WIDTH, SCREEN_HEIGHT, null);
             msg += "foreground ";
         }
-        if (withState) {
-            renderState(buffer_g);
-            msg += "state ";
+        if (withGrid) {
+            renderGrid(buffer_g);
+            msg += "grid ";
         }
         if (state == Brick.SOLID_STATE) {
             msg += " / solid";
@@ -171,13 +166,18 @@ public class LevelEditorPanel extends Component {
     }
 
     private void renderState(Graphics g) {
-        for (Brick element : bricks) {
-            if (element.state == Brick.SOLID_STATE) {
-                g.setColor(Color.CYAN);
-            } else if (element.state == Brick.DEADLY_STATE) {
-                g.setColor(Color.RED);
-            }
-            g.fillRect(element.x - x, element.y, element.width, element.height);
+        for (Brick brick : bricks) {
+            brick.render(g, x, x + SCREEN_WIDTH);
+        }
+    }
+
+    private void renderGrid(Graphics g) {
+        g.setColor(new Color(128, 128, 128, 128));
+        for (int x = 0; x <  SCREEN_WIDTH; x += 10) {
+            g.drawLine(x, 0, x, SCREEN_HEIGHT);
+        }
+        for (int y = 0; y <  SCREEN_HEIGHT; y += 10) {
+            g.drawLine(0, y, SCREEN_WIDTH, y);
         }
     }
 
