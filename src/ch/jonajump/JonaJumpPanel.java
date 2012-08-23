@@ -35,7 +35,7 @@ public class JonaJumpPanel extends Component implements Runnable {
 
     private Image buffer;
 
-    private Bricks bricks;
+    private Items bricks;
     private Player player;
 
     private boolean game_over = false;
@@ -84,7 +84,7 @@ public class JonaJumpPanel extends Component implements Runnable {
         try {
             loadImages();
             Images.load(world, level);
-            bricks = new Bricks(world, level);
+            bricks = new Items(world, level);
             background_width = background_image.getWidth();
             player = new Player(player_type, bricks, background_width, SCREEN_HEIGHT);
             x = 0;
@@ -95,8 +95,8 @@ public class JonaJumpPanel extends Component implements Runnable {
     }
 
     private void loadImages() throws IOException {
-        background_image = ImageLoader.getImage("world" + world + "/level" + level + "/background");
-        foreground_image = ImageLoader.getImage("world" + world + "/level" + level + "/foreground");
+        background_image = ResourceLoader.getImage("world" + world + "/level" + level + "/background");
+        foreground_image = ResourceLoader.getImage("world" + world + "/level" + level + "/foreground");
     }
 
     public Dimension getPreferredSize() {
@@ -171,7 +171,7 @@ public class JonaJumpPanel extends Component implements Runnable {
     }
 
     private void renderBricks(Graphics g) {
-        for (Brick brick : bricks) {
+        for (Item brick : bricks) {
             brick.render(g, x, x + SCREEN_WIDTH);
         }
     }
@@ -186,7 +186,7 @@ public class JonaJumpPanel extends Component implements Runnable {
 
     private void drawInfos(Graphics g) {
         drawString(g, 10, 10 + g.getFontMetrics().getHeight(), "World " + world + ", Level " + level);
-        String found = "Drops " + player.drops_found + ", Gold " + player.gold_found;
+        String found = "Drops " + player.drops_found + ", Gold " + player.gold_found + ", Stars " + player.stars_found;
         drawString(g, SCREEN_WIDTH - 10 - g.getFontMetrics().stringWidth(found), 10 + g.getFontMetrics().getHeight(), found);
     }
 

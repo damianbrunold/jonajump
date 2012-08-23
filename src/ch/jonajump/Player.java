@@ -45,12 +45,13 @@ public class Player {
 
     private int character;
 
-    private Bricks bricks;
+    private Items bricks;
 
     public int drops_found = 0;
     public int gold_found = 0;
+    public int stars_found = 0;
 
-    public Player(int character, Bricks bricks, int world_width, int world_height) {
+    public Player(int character, Items bricks, int world_width, int world_height) {
     	this.character = character;
     	this.bricks = bricks;
     	this.world_width = world_width;
@@ -65,12 +66,12 @@ public class Player {
     }
 
     private void loadImages() throws IOException {
-        images[0] = ImageLoader.getImage("player" + character + "/standing_left");
-        images[1] = ImageLoader.getImage("player" + character + "/standing_right");
-        images[2] = ImageLoader.getImage("player" + character + "/jumping_left");
-        images[3] = ImageLoader.getImage("player" + character + "/jumping_right");
-        images[4] = ImageLoader.getImage("player" + character + "/running_left");
-        images[5] = ImageLoader.getImage("player" + character + "/running_right");
+        images[0] = ResourceLoader.getImage("player" + character + "/standing_left");
+        images[1] = ResourceLoader.getImage("player" + character + "/standing_right");
+        images[2] = ResourceLoader.getImage("player" + character + "/jumping_left");
+        images[3] = ResourceLoader.getImage("player" + character + "/jumping_right");
+        images[4] = ResourceLoader.getImage("player" + character + "/running_left");
+        images[5] = ResourceLoader.getImage("player" + character + "/running_right");
         image = images[1];
     }
 
@@ -97,8 +98,8 @@ public class Player {
 
     public synchronized void jump() {
         jumping = true;
-        Brick hit = bricks.hit(x + width / 2, y + 2);
-        if (hit != null && hit.type == Brick.BRICK) {
+        Item hit = bricks.hit(x + width / 2, y + 2);
+        if (hit != null && hit instanceof Brick) {
             velocity_y = running ? JUMP_ACCEL_RUNNING : JUMP_ACCEL_STANDING;
             if (down) {
                 velocity_y *= -1;
@@ -160,8 +161,8 @@ public class Player {
     }
 
     private int hitCheckY(int new_x, int new_y) {
-        Brick hit = bricks.hit(new_x + width / 2, y + 1);
-        if (hit != null && hit.type == Brick.BRICK) {
+        Item hit = bricks.hit(new_x + width / 2, y + 1);
+        if (hit != null && hit instanceof Brick) {
             if (velocity_y < 0) {
                 new_y = hit.y;
                 velocity_y = 0;
@@ -173,13 +174,16 @@ public class Player {
     }
 
     private void collectStuff() {
-        Brick hit = bricks.hit(x + width / 2, y - height / 2);
+        Item hit = bricks.hit(x, y - height, width, height - 1);
         if (hit != null) {
-            if (hit.type == Brick.DROP) {
+            if (hit instanceof Drop) {
                 drops_found++;
                 bricks.remove(hit);
-            } else if (hit.type == Brick.GOLD) {
+            } else if (hit instanceof Gold) {
                 gold_found++;
+                bricks.remove(hit);
+            } else if (hit instanceof Star) {
+                stars_found++;
                 bricks.remove(hit);
             }
         }

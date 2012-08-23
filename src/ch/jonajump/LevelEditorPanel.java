@@ -31,21 +31,21 @@ public class LevelEditorPanel extends Component {
     private boolean withBackground = true;
     private boolean withForeground = true;
     private boolean withGrid = true;
-    private boolean withState = true;
+    private boolean withItems = true;
 
-    private int state = Brick.BRICK;
+    private int state = 1;
 
     private BufferedImage background_image;
     private BufferedImage foreground_image;
 
     private Image buffer;
 
-    private Bricks bricks;
+    private Items items;
 
     public LevelEditorPanel() throws IOException {
         loadImages();
         Images.load(world, level);
-        bricks = new Bricks(world, level);
+        items = new Items(world, level);
         addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
@@ -57,27 +57,30 @@ public class LevelEditorPanel extends Component {
                     withForeground = !withForeground;
                     repaint();
                 } else if (e.getKeyChar() == '3') {
-                    withState = !withState;
+                    withItems = !withItems;
                     repaint();
                 } else if (e.getKeyChar() == '4') {
                     withGrid = !withGrid;
                     repaint();
-                } else if (e.getKeyCode() == KeyEvent.VK_S) {
-                    state = Brick.BRICK;
+                } else if (e.getKeyCode() == KeyEvent.VK_B) {
+                    state = 1;
                     repaint();
                 } else if (e.getKeyCode() == KeyEvent.VK_D) {
-                    state = Brick.DROP;
+                    state = 2;
                     repaint();
                 } else if (e.getKeyCode() == KeyEvent.VK_G) {
-                    state = Brick.GOLD;
+                    state = 3;
+                    repaint();
+                } else if (e.getKeyCode() == KeyEvent.VK_S) {
+                    state = 4;
                     repaint();
                 } else if (e.getKeyCode() == KeyEvent.VK_Z) {
-                    if (!bricks.isEmpty()) {
-                        bricks.pop();
+                    if (!items.isEmpty()) {
+                        items.pop();
                     }
                     repaint();
                 } else if (e.getKeyCode() == KeyEvent.VK_W) {
-                    bricks.writeBricks(world, level);
+                    items.writeItems(world, level);
                 } else if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
                     x += 50;
                     if (x > background_image.getWidth() - SCREEN_WIDTH) {
@@ -96,19 +99,19 @@ public class LevelEditorPanel extends Component {
         addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                bricks.createAt(x + e.getX(), e.getY(), state);
+                items.createAt(x + e.getX(), e.getY(), state);
                 repaint();
             }
             @Override
             public void mouseReleased(MouseEvent e) {
-                bricks.updateLast(x + e.getX(), e.getY());
+                items.updateLast(x + e.getX(), e.getY());
                 repaint();
             }
         });
         addMouseMotionListener(new MouseMotionAdapter() {
             @Override
             public void mouseDragged(MouseEvent e) {
-                bricks.updateLast(x + e.getX(), e.getY());
+                items.updateLast(x + e.getX(), e.getY());
                 repaint();
             }
         });
@@ -147,9 +150,9 @@ public class LevelEditorPanel extends Component {
             buffer_g.drawImage(background_image, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, x, 0, x + SCREEN_WIDTH, SCREEN_HEIGHT, null);
             msg += "background ";
         }
-        if (withState) {
-            renderState(buffer_g);
-            msg += "state ";
+        if (withItems) {
+            renderItems(buffer_g);
+            msg += "items ";
         }
         if (withForeground) {
             buffer_g.drawImage(foreground_image, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, x, 0, x + SCREEN_WIDTH, SCREEN_HEIGHT, null);
@@ -159,12 +162,14 @@ public class LevelEditorPanel extends Component {
             renderGrid(buffer_g);
             msg += "grid ";
         }
-        if (state == Brick.BRICK) {
+        if (state == 1) {
             msg += " / brick";
-        } else if (state == Brick.DROP) {
+        } else if (state == 2) {
             msg += " / drop";
-        } else if (state == Brick.GOLD) {
+        } else if (state == 3) {
             msg += " / gold";
+        } else if (state == 4) {
+            msg += " / star";
         }
         buffer_g.setColor(Color.BLACK);
         buffer_g.drawString(msg, 5, buffer_g.getFontMetrics().getHeight());
@@ -172,9 +177,9 @@ public class LevelEditorPanel extends Component {
         g.drawImage(buffer, 0, 0, null);
     }
 
-    private void renderState(Graphics g) {
-        for (Brick brick : bricks) {
-            brick.render(g, x, x + SCREEN_WIDTH);
+    private void renderItems(Graphics g) {
+        for (Item item : items) {
+            item.render(g, x, x + SCREEN_WIDTH);
         }
     }
 
