@@ -82,6 +82,8 @@ public class JonaJumpPanel extends Component implements Runnable {
 
     private void initLevel() {
         try {
+            if (game_over) level = 1;
+            if (level_finished) level++;
             loadImages();
             Images.load(world, level);
             bricks = new Items(world, level);

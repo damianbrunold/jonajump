@@ -43,9 +43,7 @@ public class LevelEditorPanel extends Component {
     private Items items;
 
     public LevelEditorPanel() throws IOException {
-        loadImages();
-        Images.load(world, level);
-        items = new Items(world, level);
+        initLevel();
         addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
@@ -73,6 +71,22 @@ public class LevelEditorPanel extends Component {
                     repaint();
                 } else if (e.getKeyCode() == KeyEvent.VK_S) {
                     state = 4;
+                    repaint();
+                } else if (e.getKeyCode() == KeyEvent.VK_PAGE_DOWN) {
+                    level++;
+                    try {
+                        initLevel();
+                    } catch (IOException e1) {
+                        e1.printStackTrace();
+                    }
+                    repaint();
+                } else if (e.getKeyCode() == KeyEvent.VK_PAGE_UP) {
+                    level--;
+                    try {
+                        initLevel();
+                    } catch (IOException e1) {
+                        e1.printStackTrace();
+                    }
                     repaint();
                 } else if (e.getKeyCode() == KeyEvent.VK_Z) {
                     if (!items.isEmpty()) {
@@ -117,6 +131,14 @@ public class LevelEditorPanel extends Component {
         });
         setFocusable(true);
         requestFocus();
+    }
+
+    private void initLevel() throws IOException {
+        loadImages();
+        Images.load(world, level);
+        items = new Items(world, level);
+        buffer = null;
+        x = 0;
     }
 
     private void loadImages() throws IOException {
