@@ -163,10 +163,14 @@ public class Player {
                 if (isBrickToRight(brick) && looking_right) {
                     new_x = brick.x - width - 1;
                     looking_right = false;
+                    accel_x = 0;
+                    velocity_x /= 4;
                     break;
                 } else if (isBrickToLeft(brick) && !looking_right) {
                     new_x = brick.x + brick.width + 1;
                     looking_right = true;
+                    accel_x = 0;
+                    velocity_x /= 4;
                     break;
                 }
             }
@@ -182,6 +186,7 @@ public class Player {
                     new_y = item.y - 1;
                     velocity_y = 0;
                     accel_y = 0;
+                    if ((y - new_y) > 1) velocity_x = 0;
                     break;
                 } else if (isBrickAbove(brick)) {
                     new_y = item.y + item.height + height + 1;
