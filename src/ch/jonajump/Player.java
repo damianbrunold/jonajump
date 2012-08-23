@@ -3,6 +3,7 @@ package ch.jonajump;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.List;
 
 public class Player {
 
@@ -45,15 +46,15 @@ public class Player {
 
     private int character;
 
-    private Items bricks;
+    private Items items;
 
     public int drops_found = 0;
     public int gold_found = 0;
     public int stars_found = 0;
 
-    public Player(int character, Items bricks, int world_width, int world_height) {
+    public Player(int character, Items items, int world_width, int world_height) {
     	this.character = character;
-    	this.bricks = bricks;
+    	this.items = items;
     	this.world_width = world_width;
     	this.world_height = world_height;
         try {
@@ -98,7 +99,7 @@ public class Player {
 
     public synchronized void jump() {
         jumping = true;
-        Item hit = bricks.hit(x + width / 2, y + 2);
+        Item hit = items.hit(x + width / 2, y + 2);
         if (hit != null && hit instanceof Brick) {
             velocity_y = running ? JUMP_ACCEL_RUNNING : JUMP_ACCEL_STANDING;
             if (down) {
@@ -118,7 +119,7 @@ public class Player {
     private void calcVelocityX() {
         if (accel_x != 0) {
             velocity_x = Math.min(RUN_VELOCITY, velocity_x + accel_x);
-        } else if (bricks.hit(x + width / 2, y + 1) == null) {
+        } else if (items.hit(x + width / 2, y + 1) == null) {
             velocity_x *= AIR_VELOCITY_DECAY;
             if (velocity_x < 1) velocity_x = 0;
         } else {
@@ -135,8 +136,9 @@ public class Player {
     private void updatePosition() {
     	int new_x = nextPositionX();
     	int new_y = nextPositionY();
-    	x = hitCheckX(new_x, new_y);
-        y = hitCheckY(new_x, new_y);
+    	List<Item> hit_items = items.hit(new_x, new_y - height, width, height);
+    	x = hitCheckX(new_x, new_y, hit_items);
+        y = hitCheckY(new_x, new_y, hit_items);
         setImage();
     }
 
@@ -149,42 +151,82 @@ public class Player {
         }
     }
 
-	private int nextPositionY() {
-		if (velocity_y != 0) {
+    private int nextPositionY() {
+        if (velocity_y != 0) {
             return (int) (y - velocity_y);
         }
-		return y;
-	}
+        return y;
+    }
 
-    private int hitCheckX(int new_x, int new_y) {
+    private int hitCheckX(int new_x, int new_y, List<Item> hit_items) {
+        for (Item item : hit_items) {
+            if (item != null && item instanceof Brick) {
+                Brick brick = (Brick) item;
+                if (isBrickToRight(brick) && looking_right) {
+                    new_x = brick.x - width - 1;
+                    looking_right = false;
+                    break;
+                } else if (isBrickToLeft(brick) && !looking_right) {
+                    new_x = brick.x + brick.width + 1;
+                    looking_right = true;
+                    break;
+                }
+            }
+        }
     	return new_x;
     }
 
-    private int hitCheckY(int new_x, int new_y) {
-        Item hit = bricks.hit(new_x + width / 2, y + 1);
-        if (hit != null && hit instanceof Brick) {
-            if (velocity_y < 0) {
-                new_y = hit.y;
-                velocity_y = 0;
-                accel_y = 0;
+    private int hitCheckY(int new_x, int new_y, List<Item> hit_items) {
+        for (Item item : hit_items) {
+            if (item != null && item instanceof Brick) {
+                Brick brick = (Brick) item;
+                if (isBrickBelow(brick)) {
+                    new_y = item.y - 1;
+                    velocity_y = 0;
+                    accel_y = 0;
+                    break;
+                } else if (isBrickAbove(brick)) {
+                    new_y = item.y + item.height + height + 1;
+                    velocity_y = 0;
+                    accel_y = 0;
+                    break;
+                }
             }
         }
         if (new_y > world_height) dead = true;
         return new_y;
     }
 
+    private boolean isBrickToLeft(Brick brick) {
+        return brick.x + brick.width < x && brick.y <= y && brick.y + brick.height >= y - height;
+    }
+
+    private boolean isBrickToRight(Brick brick) {
+        return x + width < brick.x && brick.y <= y && brick.y + brick.height >= y - height;
+    }
+
+    private boolean isBrickAbove(Brick brick) {
+        return brick.y + brick.height < y - height && brick.x <= x + width && brick.x + brick.width >= x;
+    }
+
+    private boolean isBrickBelow(Brick brick) {
+        return y < brick.y && brick.x <= x + width && brick.x + brick.width >= x;
+    }
+
     private void collectStuff() {
-        Item hit = bricks.hit(x, y - height, width, height - 1);
-        if (hit != null) {
-            if (hit instanceof Drop) {
-                drops_found++;
-                bricks.remove(hit);
-            } else if (hit instanceof Gold) {
-                gold_found++;
-                bricks.remove(hit);
-            } else if (hit instanceof Star) {
-                stars_found++;
-                bricks.remove(hit);
+        List<Item> hit_items = items.hit(x, y - height, width, height - 1);
+        if (!hit_items.isEmpty()) {
+            for (Item item : hit_items) {
+                if (item instanceof Drop) {
+                    drops_found++;
+                    items.remove(item);
+                } else if (item instanceof Gold) {
+                    gold_found++;
+                    items.remove(item);
+                } else if (item instanceof Star) {
+                    stars_found++;
+                    items.remove(item);
+                }
             }
         }
     }

@@ -125,11 +125,12 @@ public class Items implements Iterable<Item> {
         return null;
     }
 
-    public Item hit(int x, int y, int width, int height) {
+    public List<Item> hit(int x, int y, int width, int height) {
+        List<Item> result = new ArrayList<Item>();
         for (Item item : items) {
-            if (item.hit(x, y, width, height)) return item;
+            if (item.hit(x, y, width, height)) result.add(item);
         }
-        return null;
+        return result;
     }
 
 }
