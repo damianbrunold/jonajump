@@ -10,6 +10,8 @@ public class Sounds {
     private static Sound gold;
     private static Sound star;
 
+    public static boolean disable_sounds = false;
+
     private static Deque<String> playlist = new ConcurrentLinkedDeque<String>();
 
     public static void init() {
@@ -53,18 +55,23 @@ public class Sounds {
     }
 
     public static void jump() {
+        if (disable_sounds) return;
         //playlist.push("jump");
     }
 
     public static void drop() {
+        if (disable_sounds) return;
         playlist.push("drop");
     }
 
     public static void gold() {
+        if (disable_sounds) return;
         playlist.push("gold");
     }
 
     public static void star() {
+        if (disable_sounds) return;
         playlist.push("star");
     }
+
 }

@@ -48,7 +48,12 @@ public class Player {
     public boolean jumping = false;
     public boolean down = false;
 
-    private BufferedImage[] images = new BufferedImage[6];
+    private BufferedImage image_standing_left;
+    private BufferedImage image_standing_right;
+    private BufferedImage image_jumping_left;
+    private BufferedImage image_jumping_right;
+    private BufferedImage[] images_running_left = new BufferedImage[2];
+    private BufferedImage[] images_running_right = new BufferedImage[2];
     private BufferedImage image;
 
     private int character;
@@ -72,13 +77,15 @@ public class Player {
     }
 
     private void loadImages() throws IOException {
-        images[0] = ResourceLoader.getImage("player" + character + "/standing_left");
-        images[1] = ResourceLoader.getImage("player" + character + "/standing_right");
-        images[2] = ResourceLoader.getImage("player" + character + "/jumping_left");
-        images[3] = ResourceLoader.getImage("player" + character + "/jumping_right");
-        images[4] = ResourceLoader.getImage("player" + character + "/running_left");
-        images[5] = ResourceLoader.getImage("player" + character + "/running_right");
-        image = images[1];
+        image_standing_left = ResourceLoader.getImage("player" + character + "/standing_left");
+        image_standing_right = ResourceLoader.getImage("player" + character + "/standing_right");
+        image_jumping_left = ResourceLoader.getImage("player" + character + "/jumping_left");
+        image_jumping_right = ResourceLoader.getImage("player" + character + "/jumping_right");
+        images_running_left[0] = ResourceLoader.getImage("player" + character + "/running_left_1");
+        images_running_left[1] = ResourceLoader.getImage("player" + character + "/running_left_2");
+        images_running_right[0] = ResourceLoader.getImage("player" + character + "/running_right_1");
+        images_running_right[1] = ResourceLoader.getImage("player" + character + "/running_right_2");
+        image = image_standing_right;
     }
 
     public synchronized void startRunningRight() {
@@ -243,11 +250,17 @@ public class Player {
     }
 
     private void setImage() {
-        int index = 0;
-        if (jumping) index = 2;
-        else if (running) index = 4;
-        if (looking_right) index++;
-        image = images[index];
+        if (jumping) {
+            if (looking_right) image = image_jumping_right;
+            else image = image_jumping_left;
+        } else if (running) {
+            int index = (int) ((System.currentTimeMillis() / 150) % 2);
+            if (looking_right) image = images_running_right[index];
+            else image = images_running_left[index];
+        } else {
+            if (looking_right) image = image_standing_right;
+            else image = image_standing_left;
+        }
     }
 
     public synchronized boolean isDead() {

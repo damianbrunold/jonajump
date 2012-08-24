@@ -50,6 +50,7 @@ public class JonaJumpPanel extends Component implements Runnable {
     private boolean level_finished = false;
 
     public JonaJumpPanel() throws IOException {
+        if (System.getProperty("disable_sounds") != null) Sounds.disable_sounds = true;
         Drop.init();
         Gold.init();
         Star.init();
@@ -68,6 +69,9 @@ public class JonaJumpPanel extends Component implements Runnable {
                 } else if (e.getKeyCode() == KeyEvent.VK_SPACE && !player.jumping) {
                 	player.jump();
                 } else if ((level_failed || level_finished) && e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    initLevel();
+                } else if (System.getProperty("level_choose") != null && KeyEvent.VK_1 <= e.getKeyCode() && e.getKeyCode() <= KeyEvent.VK_9) {
+                    level = e.getKeyCode() - KeyEvent.VK_0;
                     initLevel();
                 }
             }
