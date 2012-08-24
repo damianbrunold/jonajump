@@ -34,11 +34,12 @@ public class Sounds {
                             } else if (sound.equals("star")) {
                                 star.play();
                             }
-                        }
-                        try {
-                            Thread.sleep(5);
-                        } catch (InterruptedException e) {
-                            // ignore
+                        } else {
+                            try {
+                                Thread.sleep(5);
+                            } catch (InterruptedException e) {
+                                // ignore
+                            }
                         }
                     }
                 }
