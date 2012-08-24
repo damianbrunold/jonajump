@@ -1,10 +1,30 @@
 todo
 ----
 
-- create a sprite class with basic move, display and hit-detection capability
-- create player sprite class with jumping, falling etc
-- add hit-detection
-- instead of only solid state elements, split it into three variants:
-  - solid
-  - step (one can jump up through it, but stand on it)
-  - trapdoor (one falls through it, but cannot jump up again
+- add moving items (up-down, left-right, jumping)
+- jumping on moving item should remove it
+- add item with coin inside, by bumping from below the coin can be collected
+- animate the player
+
+- move acceleration, decay, velocity stuff to the items, this
+  enables icy bricks, or tar bricks, varying the jump height
+  and so on.
+  
+- add doors to go from one place to another
+- add bricks that can be stood on but jumped through
+
+- add unit tests for hit detection and motion handling
+
+- add sound effects, jump (optional?), collect drop, gold and star
+
+- limit number of stars to one per level
+- think about what to do with drops and gold coins
+- calculate an overall score (some formula containing drops, gold and stars)
+
+- design very complex level to see how far the rendering goes
+
+- maybe use simple color in bricks if it is faster than textures
+- cache textures
+
+- add spring brick that allows very high/far jump
+- add paraglider item that allows flying around for some time
