@@ -14,11 +14,11 @@ import ch.jonajump.items.Star;
 
 public class Player {
 
-    private static final int RUN_VELOCITY = 10;
-    private static final double RUN_ACCEL = 1.0;
+    private static final int RUN_VELOCITY = 8;
+    private static final double RUN_ACCEL = 0.7;
 
     private static final double AIR_VELOCITY_DECAY = 0.92;
-    private static final double GROUND_VELOCITY_DECAY = 0.5;
+    private static final double GROUND_VELOCITY_DECAY = 0.3;
 
     private static final int JUMP_ACCEL_STANDING = 12;
     private static final int JUMP_ACCEL_RUNNING = 14;
@@ -67,8 +67,8 @@ public class Player {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        width = image.getWidth();
-        height = image.getHeight();
+        width = image.getWidth() - 2;
+        height = image.getHeight() - 2;
     }
 
     private void loadImages() throws IOException {
@@ -109,7 +109,7 @@ public class Player {
             velocity_y = running ? JUMP_ACCEL_RUNNING : JUMP_ACCEL_STANDING;
             if (down) {
                 velocity_y *= -1;
-                y += 21; // FIXME
+                y += 1;
             }
         }
     }
@@ -168,16 +168,14 @@ public class Player {
             if (item != null && item instanceof Brick) {
                 Brick brick = (Brick) item;
                 if (isBrickToRight(brick) && looking_right) {
-                    new_x = brick.x - width - 1;
-                    looking_right = false;
+                    new_x = Math.min(x, brick.x - width - 1);
                     accel_x = 0;
-                    velocity_x /= 4;
+                    velocity_x = 0;
                     break;
                 } else if (isBrickToLeft(brick) && !looking_right) {
-                    new_x = brick.x + brick.width + 1;
-                    looking_right = true;
+                    new_x = Math.max(x, brick.x + brick.width + 1);
                     accel_x = 0;
-                    velocity_x /= 4;
+                    velocity_x = 0;
                     break;
                 }
             }
@@ -193,10 +191,6 @@ public class Player {
                     new_y = item.y - 1;
                     velocity_y = 0;
                     accel_y = 0;
-                    if ((y - new_y) > 1) {
-                    	velocity_x = 0;
-                    	accel_x = 0;
-                    }
                     break;
                 } else if (isBrickAbove(brick)) {
                     new_y = item.y + item.height + height + 1;
