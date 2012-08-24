@@ -53,6 +53,7 @@ public class JonaJumpPanel extends Component implements Runnable {
         Drop.init();
         Gold.init();
         Star.init();
+        Sounds.init();
         initLevel();
         addKeyListener(new KeyAdapter() {
             @Override

@@ -103,6 +103,7 @@ public class Player {
     }
 
     public synchronized void jump() {
+        Sounds.jump();
         jumping = true;
         Item hit = items.hit(x + width / 2, y + 2);
         if (hit != null && hit instanceof Brick) {
@@ -227,12 +228,15 @@ public class Player {
                 if (item instanceof Drop) {
                     treasure.drops++;
                     items.remove(item);
+                    Sounds.drop();
                 } else if (item instanceof Gold) {
                     treasure.gold++;
                     items.remove(item);
+                    Sounds.gold();
                 } else if (item instanceof Star) {
                     treasure.stars++;
                     items.remove(item);
+                    Sounds.star();
                 }
             }
         }
