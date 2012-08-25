@@ -54,6 +54,8 @@ public class Items implements Iterable<Item> {
             return new Gold(x, y);
         } else if (type.equals("star")) {
             return new Star(x, y);
+        } else if (type.equals("jumper")) {
+            return new Jumper(x, y);
         }
         throw new RuntimeException("unknown item type " + type);
     }
@@ -83,6 +85,8 @@ public class Items implements Iterable<Item> {
             item = Gold.createAt(x, y);
         } else if (type == 4) {
             item = Star.createAt(x, y);
+        } else if (type == 5) {
+            item = Jumper.createAt(x, y);
         } else {
             throw new RuntimeException("unknown type " + type);
         }
@@ -133,6 +137,12 @@ public class Items implements Iterable<Item> {
             if (item.hit(x, y, width, height)) result.add(item);
         }
         return result;
+    }
+
+    public void updatePositions() {
+        for (Item item : items) {
+            item.updatePosition();
+        }
     }
 
 }

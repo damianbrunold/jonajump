@@ -1,4 +1,4 @@
-package ch.jonajump;
+package ch.jonajump.leveleditor;
 
 import java.awt.BorderLayout;
 import java.io.IOException;

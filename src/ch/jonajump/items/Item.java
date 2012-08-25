@@ -69,6 +69,10 @@ public abstract class Item {
                 (this.y <= y + height);
     }
 
+    public void updatePosition() {
+        // empty;
+    }
+
     public abstract void render(Graphics g, int start_x, int end_x);
 
     public int getOffsetX() {

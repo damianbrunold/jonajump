@@ -16,6 +16,7 @@ import ch.jonajump.items.Drop;
 import ch.jonajump.items.Gold;
 import ch.jonajump.items.Item;
 import ch.jonajump.items.Items;
+import ch.jonajump.items.Jumper;
 import ch.jonajump.items.Star;
 
 public class JonaJumpPanel extends Component implements Runnable {
@@ -42,7 +43,7 @@ public class JonaJumpPanel extends Component implements Runnable {
 
     private Image buffer;
 
-    private Items bricks;
+    private Items items;
     private Player player;
     private Treasure treasure = new Treasure();
 
@@ -54,6 +55,7 @@ public class JonaJumpPanel extends Component implements Runnable {
         Drop.init();
         Gold.init();
         Star.init();
+        Jumper.init();
         Sounds.init();
         initLevel();
         addKeyListener(new KeyAdapter() {
@@ -105,9 +107,9 @@ public class JonaJumpPanel extends Component implements Runnable {
             if (level_finished) level++;
             loadImages();
             Brick.init(world, level);
-            bricks = new Items(world, level);
+            items = new Items(world, level);
             background_width = background_image.getWidth();
-            player = new Player(player_type, bricks, treasure, background_width, SCREEN_HEIGHT);
+            player = new Player(player_type, items, treasure, background_width, SCREEN_HEIGHT);
             x = 0;
             level_failed = level_finished = false;
         } catch (IOException e) {
@@ -153,6 +155,7 @@ public class JonaJumpPanel extends Component implements Runnable {
     private void updateState() {
         if (level_failed || level_finished) return;
         player.move();
+        items.updatePositions();
         updateScreenPosition();
         checkGameOver();
         checkLevelFinished();
@@ -199,7 +202,7 @@ public class JonaJumpPanel extends Component implements Runnable {
     }
 
     private void renderBricks(Graphics g) {
-        for (Item brick : bricks) {
+        for (Item brick : items) {
             brick.render(g, x, x + SCREEN_WIDTH);
         }
     }

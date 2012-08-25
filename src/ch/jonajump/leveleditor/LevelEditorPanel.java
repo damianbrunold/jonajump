@@ -1,4 +1,4 @@
-package ch.jonajump;
+package ch.jonajump.leveleditor;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -21,6 +21,7 @@ import ch.jonajump.items.Drop;
 import ch.jonajump.items.Gold;
 import ch.jonajump.items.Item;
 import ch.jonajump.items.Items;
+import ch.jonajump.items.Jumper;
 import ch.jonajump.items.Star;
 
 public class LevelEditorPanel extends Component {
@@ -53,6 +54,7 @@ public class LevelEditorPanel extends Component {
         Drop.init();
         Gold.init();
         Star.init();
+        Jumper.init();
         initLevel();
         addKeyListener(new KeyAdapter() {
             @Override
@@ -81,6 +83,9 @@ public class LevelEditorPanel extends Component {
                     repaint();
                 } else if (e.getKeyCode() == KeyEvent.VK_S) {
                     state = 4;
+                    repaint();
+                } else if (e.getKeyCode() == KeyEvent.VK_J) {
+                    state = 5;
                     repaint();
                 } else if (e.getKeyCode() == KeyEvent.VK_PAGE_DOWN) {
                     level++;
@@ -202,6 +207,8 @@ public class LevelEditorPanel extends Component {
             msg += " / gold";
         } else if (state == 4) {
             msg += " / star";
+        } else if (state == 5) {
+            msg += " / jumper";
         }
         buffer_g.setColor(Color.BLACK);
         buffer_g.drawString(msg, 5, buffer_g.getFontMetrics().getHeight());

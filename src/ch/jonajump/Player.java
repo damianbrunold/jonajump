@@ -10,6 +10,7 @@ import ch.jonajump.items.Drop;
 import ch.jonajump.items.Gold;
 import ch.jonajump.items.Item;
 import ch.jonajump.items.Items;
+import ch.jonajump.items.Jumper;
 import ch.jonajump.items.Star;
 
 public class Player {
@@ -126,7 +127,7 @@ public class Player {
     	calcVelocityX();
     	calcVelocityY();
     	updatePosition();
-    	collectStuff();
+    	checkCollisions();
     }
 
     private void calcVelocityX() {
@@ -228,7 +229,7 @@ public class Player {
         return y < brick.y && brick.x <= x + width && brick.x + brick.width >= x;
     }
 
-    private void collectStuff() {
+    private void checkCollisions() {
         List<Item> hit_items = items.hit(x, y - height, width, height - 1);
         if (!hit_items.isEmpty()) {
             for (Item item : hit_items) {
@@ -244,6 +245,8 @@ public class Player {
                     treasure.stars++;
                     items.remove(item);
                     Sounds.star();
+                } else if (item instanceof Jumper) {
+                    dead = true;
                 }
             }
         }
