@@ -28,6 +28,7 @@ thought of as a proof of concept.
 
 The level editors accepts the following keys:
 
+```
  1 - toggle background
  2 - toggle items
  3 - toggle foreground
@@ -39,6 +40,7 @@ The level editors accepts the following keys:
  j - select jumper
  z - erase last item
  w - write changes to disk
+```
 
 Use left and right to scroll through the level and page up/down to
 switch between levels. You draw elements using the mouse.
